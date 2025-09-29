@@ -160,10 +160,8 @@ Step-by-step guides for common integration scenarios:
 
 Ready to get started? Here are some recommended next steps:
 
-1. **[Python SDK Overview](./Python%20SDK/Python%20SDK.md)** - Learn about the Python client library
-2. **[Query Client Reference](./Python%20SDK/Data%20Models/Query%20Client.md)** - Detailed API client documentation
-3. **[Data Models](./Python%20SDK/Data%20Models/)** - Understanding the data structures
-4. **[Tutorials](./tutorial-basics/)** - Step-by-step implementation guides
+1. **[Query Client Reference](./Python%20SDK/Query%20Client.md)** - Detailed API client documentation
+2. **[Order Scheduler Reference](./Python%20SDK/Order%20%20Scheduler.md)** - Order scheduling documentation
 
 ---
 

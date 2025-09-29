@@ -28,3 +28,25 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+/* Navbar logo centering */
+.navbar__logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo img {
+  align-self: center;
+  vertical-align: middle;
+}
+
+/* Alternative approach - ensure navbar items are centered */
+.navbar__inner {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+}
