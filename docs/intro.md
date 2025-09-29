@@ -2,46 +2,169 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# API Overview
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Welcome to the comprehensive documentation for the Biosero Data Services API. This documentation provides everything you need to integrate with and utilize Biosero's laboratory automation and data management platform.
+
+## What is the Biosero Data Services API?
+
+The Biosero Data Services API is a powerful RESTful interface that enables seamless integration with Biosero's laboratory automation ecosystem. It provides programmatic access to:
+
+- **Laboratory Asset Management** - Track and manage laboratory equipment, containers, and resources
+- **Sample and Material Tracking** - Monitor samples, materials, and their locations throughout workflows
+- **Event Management** - Access comprehensive audit trails and system events
+- **Workflow Orchestration** - Retrieve and manage automated workflow processes
+- **Location Services** - Query spatial relationships and container hierarchies
+- **Data Analytics** - Access measurement data, parameters, and metadata
+
+## Key Features
+
+### 🔍 **Comprehensive Querying**
+- Real-time access to laboratory data
+- Advanced search and filtering capabilities
+- Pagination support for large datasets
+- Location-based queries and spatial relationships
+
+### 🏗️ **Robust Data Models**
+- Strongly-typed data structures
+- Consistent parameter handling
+- Rich metadata support
+- Extensible property collections
+
+### 🔒 **Enterprise-Ready**
+- Secure authentication and authorization
+- Comprehensive error handling
+- Audit trail and event tracking
+- RESTful design principles
+
+### 🐍 **Python SDK**
+- Native Python client library
+- Type-safe data models
+- Context manager support
+- Async/await compatibility
+
+## API Architecture
+
+The Biosero Data Services API follows RESTful principles and is organized around key resource types:
+
+- **Identities** - Core objects representing laboratory items
+- **Locations** - Spatial positioning and container relationships  
+- **Events** - System activities and audit information
+- **Workflows** - Process execution and orchestration
+- **Measurements** - Quantitative data (volume, weight, etc.)
 
 ## Getting Started
 
-Get started by **creating a new site**.
+### Prerequisites
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+- Access to a Biosero Data Services instance
+- API credentials and base URL
+- Python 3.7+ (for Python SDK usage)
 
-### What you'll need
+### Quick Start with Python SDK
 
-- [Node.js](https://nodejs.org/en/download/) version 20.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+```python
+from biosero.query_client import QueryClient
 
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
+# Initialize the client
+with QueryClient("https://your-api-base-url.com") as client:
+    # Get an item's identity
+    identity = client.get_identity("sample-123")
+    
+    # Query items at a location
+    items = client.get_items_at_location("freezer-A1", limit=50, offset=0)
+    
+    # Get materials in a container
+    materials = client.get_materials_in_container("plate-456")
 ```
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+### Authentication
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+The API uses standard HTTP authentication mechanisms. Contact your system administrator for:
+- API base URL
+- Authentication credentials
+- Access permissions
 
-## Start your site
+## API Versions
 
-Run the development server:
+The Biosero Data Services API uses semantic versioning:
 
-```bash
-cd my-website
-npm run start
-```
+- **v2.0** - Current stable version for most query operations
+- **v3.0** - Latest version with enhanced features for identity management and workflows
 
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
+## Documentation Structure
 
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
+This documentation is organized into several key sections:
 
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+### **Python SDK**
+Comprehensive guides for using the Python client library:
+- **Data Models** - Detailed reference for all data structures
+- **Query Client** - Complete API client documentation
+- **Examples** - Common usage patterns and code samples
+
+### **API Reference**
+Direct REST API documentation:
+- **Endpoints** - Complete endpoint reference
+- **Request/Response** - Detailed schemas and examples
+- **Error Codes** - Comprehensive error handling guide
+
+### **Tutorials**
+Step-by-step guides for common integration scenarios:
+- **Getting Started** - Basic setup and first API calls
+- **Advanced Queries** - Complex search and filtering
+- **Event Processing** - Working with system events
+- **Workflow Integration** - Automating laboratory processes
+
+## Common Use Cases
+
+### Laboratory Information Management
+- Track sample locations and transfers
+- Monitor container contents and capacity
+- Audit sample handling and processing
+
+### Process Automation
+- Retrieve workflow execution status
+- Access process parameters and results
+- Integrate with external systems
+
+### Data Analytics
+- Extract measurement and parameter data
+- Generate reports on laboratory activities
+- Monitor system performance and utilization
+
+### Quality Control
+- Access comprehensive audit trails
+- Track compliance with SOPs
+- Monitor equipment performance
+
+## Support and Resources
+
+### Getting Help
+- **Documentation** - This comprehensive guide
+- **Support Portal** - Technical support and troubleshooting
+- **Community** - User forums and knowledge sharing
+
+### Best Practices
+- Use pagination for large result sets
+- Implement proper error handling
+- Cache frequently accessed static data
+- Use context managers for resource cleanup
+
+### Performance Tips
+- Optimize query parameters to reduce result sizes
+- Use specific field projections when available
+- Implement client-side caching for reference data
+- Consider async operations for high-throughput scenarios
+
+## Next Steps
+
+Ready to get started? Here are some recommended next steps:
+
+1. **[Python SDK Overview](./Python%20SDK/Python%20SDK.md)** - Learn about the Python client library
+2. **[Query Client Reference](./Python%20SDK/Data%20Models/Query%20Client.md)** - Detailed API client documentation
+3. **[Data Models](./Python%20SDK/Data%20Models/)** - Understanding the data structures
+4. **[Tutorials](./tutorial-basics/)** - Step-by-step implementation guides
+
+---
+
+*This documentation is actively maintained and updated. For the latest information, always refer to the online version.*
