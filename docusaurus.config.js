@@ -29,7 +29,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'biosero', // Usually your GitHub org/user name.
   projectName: 'biosero-api-docs', // Usually your repo name.
-  deploymentBranch: 'main',
+  deploymentBranch: 'master',
 
   onBrokenLinks: 'throw',
 
