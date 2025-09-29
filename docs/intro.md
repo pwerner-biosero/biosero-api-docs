@@ -161,7 +161,13 @@ Step-by-step guides for common integration scenarios:
 Ready to get started? Here are some recommended next steps:
 
 1. **[Query Client Reference](./Python%20SDK/Query%20Client.md)** - Detailed API client documentation
-2. **[Order Scheduler Reference](./Python%20SDK/Order%20%20Scheduler.md)** - Order scheduling documentation
+2. **[Order Client Reference](./Python%20SDK/Order%20Client.md)** - Order management and workflow operations
+3. **[Event Client Reference](./Python%20SDK/Event%20Client.md)** - Event publishing and audit trail management
+4. **[Liquid Transfer Event Reference](./Python%20SDK/Liquid%20Transfer%20Event.md)** - Liquid handling event tracking
+5. **[Location Changed Event Reference](./Python%20SDK/Location%20Changed%20Event.md)** - Item movement and location tracking
+6. **[Module Status Update Event Reference](./Python%20SDK/Module%20Status%20Update%20Event.md)** - Equipment status monitoring
+7. **[Accessioning Client Reference](./Python%20SDK/Accessioning%20Client.md)** - Identity registration and management
+8. **[Order Scheduler Reference](./Python%20SDK/Order%20%20Scheduler.md)** - Order scheduling documentation
 
 ---
 
