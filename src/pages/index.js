@@ -32,7 +32,7 @@ export default function Home() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
+      title={`Welcome to ${siteConfig.title}`}
       description="Biosero Data Services API Documentation">
       <HomepageHeader />
       <main>
