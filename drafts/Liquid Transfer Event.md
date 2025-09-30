@@ -59,7 +59,7 @@ The actual volume that was transferred, measured by the system.
 ```python
 from biosero.datamodels.measurement import Volume
 
-actual_volume = Volume(value=100.5, unit="µL")
+actual_volume = Volume(value=100.5, unit=VolumeUnit.uL)
 ```
 
 #### `TimeStamp: datetime`
@@ -106,8 +106,8 @@ The volume that was intended to be transferred (vs. actual).
 
 **Example:**
 ```python
-intended_volume = Volume(value=100.0, unit="µL")
-actual_volume = Volume(value=99.8, unit="µL")  # Slight variance
+intended_volume = Volume(value=100.0, unit=VolumeUnit.uL)
+actual_volume = Volume(value=99.8, unit=VolumeUnit.uL)  # Slight variance
 ```
 
 ### Equipment Information
@@ -226,7 +226,7 @@ Validates required fields after object initialization.
 event = LiquidTransferEvent(
     SourceIdentifier="source-01",
     DestinationIdentifier="dest-01", 
-    ActualTransferVolume="100 µL",  # Should be Volume object
+    ActualTransferVolume=Volume(value=0.1, unit=),  # Should be Volume object
     TimeStamp=datetime.utcnow()
 )
 ```

@@ -11,18 +11,6 @@ The Query Client is designed to interact with the Biosero Data Services API, pro
 - Retrieve workflow process information
 - Search materials and samples
 
-## Class Definition
-
-```python
-class QueryClient:
-    def __init__(self, url):
-        """
-        Initialize the Query Client with the base URL for the API.
-        
-        Args:
-            url (str or callable): The base URL for the API. If callable, it will be invoked to get the URL.
-        """
-```
 
 ## Context Management
 
@@ -253,59 +241,6 @@ The Query Client implements several error handling strategies:
 1. **HTTP Status Codes**: Methods raise exceptions for HTTP errors using `response.raise_for_status()`
 2. **404 Handling**: `get_identity()` returns `None` for 404 responses instead of raising an exception
 3. **Empty Results**: `get_events()` returns `None` for 204 (No Content) responses
-
-## Best Practices
-
-### 1. Use Context Managers
-Always use the client within a context manager to ensure proper cleanup:
-
-```python
-with QueryClient("https://api.example.com") as client:
-    # Your operations here
-    pass
-```
-
-### 2. Handle Pagination
-For methods that support pagination, implement proper pagination logic:
-
-```python
-def get_all_children(client, parent_id):
-    all_children = []
-    offset = 0
-    limit = 100
-    
-    while True:
-        children = client.get_child_identities(parent_id, limit, offset)
-        if not children:
-            break
-        all_children.extend(children)
-        offset += limit
-    
-    return all_children
-```
-
-### 3. Error Handling
-Implement proper error handling for network and API errors:
-
-```python
-try:
-    identity = client.get_identity("item-123")
-    if identity is None:
-        print("Item not found")
-    else:
-        print(f"Found item: {identity.name}")
-except requests.exceptions.RequestException as e:
-    print(f"Network error: {e}")
-```
-
-### 4. Parameter Extraction
-Use the helper method for safe parameter extraction:
-
-```python
-identity = client.get_identity("sample-123")
-volume = client.get_parameter_value_from_identity(identity, "Volume")
-concentration = client.get_parameter_value_from_identity(identity, "Concentration")
-```
 
 ## Data Models
 

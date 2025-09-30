@@ -70,12 +70,11 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'Home',
+    
         logo: {
           alt: 'Biosero Logo',
           src: 'img/logo-dark.png', // Logo for dark mode
           srcDark: 'img/logo.png',
-          href: 'https://biosero.com', // Optional: link when logo is clicked
           target: '_self', // Optional: how to open the link
         },
         items: [
@@ -83,7 +82,7 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Overview',
+            label: 'Documentation',
           }
           // {
           //   href: 'https://github.com/facebook/docusaurus',
@@ -100,7 +99,7 @@ const config = {
             items: [
               {
                 label: 'API Overview',
-                to: '/docs/intro',
+                to: '/',
               },
             ],
           },

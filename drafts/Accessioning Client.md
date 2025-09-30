@@ -337,7 +337,7 @@ def register_equipment(equipment_info):
     
     event_context = EventContext(
         ActorId="system",
-        Start=datetime.datetime.now().isoformat()
+            Start=datetime.datetime.now().isoformat()
     )
     
     with AccessioningClient(API_BASE_URL) as client:
