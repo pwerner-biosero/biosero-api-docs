@@ -12,16 +12,6 @@ The Accessioning Client is designed to interact with the Biosero Accessioning Se
 
 ## Class Definition
 
-```python
-class AccessioningClient:
-    def __init__(self, url):
-        """
-        Initialize the Accessioning Client with the base URL for the API.
-        
-        Args:
-            url (str or callable): The base URL for the API. If callable, it will be invoked to get the URL.
-        """
-```
 
 ## Context Management
 
@@ -31,27 +21,6 @@ The `AccessioningClient` supports Python's context manager protocol for automati
 with AccessioningClient("https://api.example.com") as client:
     client.register(identity, event_context)
 ```
-
-## Core HTTP Methods
-
-### `post(endpoint, data=None)`
-Performs a POST request to the specified endpoint with JSON content type.
-
-**Parameters:**
-- `endpoint` (str): The API endpoint path
-- `data` (str, optional): Request body data (JSON string)
-
-**Returns:**
-- `requests.Response`: The HTTP response object
-
-### `delete(endpoint)`
-Performs a DELETE request to the specified endpoint.
-
-**Parameters:**
-- `endpoint` (str): The API endpoint path
-
-**Returns:**
-- `requests.Response`: The HTTP response object
 
 ## Identity Management
 
@@ -88,13 +57,13 @@ identity = Identity(
 identity.properties.append(Parameter(
     name="Volume",
     value="100",
-    valueType="Numeric"
+    valueType="Double"
 ))
 
 # Create event context
 event_context = EventContext(
-    user="lab_tech_1",
-    station="workstation_A"
+    ActorId ="lab_tech_1",
+    Start=datetime.datetime.now().isoformat()
 )
 
 # Register the identity
@@ -163,17 +132,17 @@ for i in range(5):
     identity.properties.append(Parameter(
         name="Volume",
         value=str(100 + i * 10),
-        valueType="Numeric"
+        valueType="Double"
     ))
     
     identities.append(identity)
 
 # Create event context for batch operation
 event_context = EventContext(
-    user="lab_tech_1",
-    station="workstation_A",
-    batch_id="batch_001"
+    ActorId ="lab_tech_1",
+    Start=datetime.datetime.now().isoformat()
 )
+
 
 # Register all identities
 with AccessioningClient("https://api.example.com") as client:
@@ -280,14 +249,14 @@ Ensure parameters have proper types and values:
 parameter = Parameter(
     name="Temperature",
     value="25.5",
-    valueType="Numeric"
+    valueType="Double"
 )
 
 # Better - use appropriate data types
 parameter = Parameter(
     name="IsActive",
     value="true",
-    valueType="Boolean"
+    valueType="Double"
 )
 ```
 
@@ -337,7 +306,7 @@ def register_sample_batch(sample_data, user_id):
         identities.append(identity)
     
     # Register batch
-    event_context = EventContext(user=user_id, timestamp=datetime.now())
+    event_context = EventContext(ActorId=user_id, Start=datetime.now())
     
     with AccessioningClient(API_BASE_URL) as client:
         return client.register_many(identities, event_context)
@@ -367,8 +336,8 @@ def register_equipment(equipment_info):
     ))
     
     event_context = EventContext(
-        user="system",
-        action="equipment_registration"
+        ActorId="system",
+        Start=datetime.datetime.now().isoformat()
     )
     
     with AccessioningClient(API_BASE_URL) as client:
