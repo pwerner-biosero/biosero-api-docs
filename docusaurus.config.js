@@ -65,7 +65,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: 'hero-gbg-orchestrator.webp',
+      image: 'img/hero-gbg-orchestrator.webp',
       colorMode: {
         respectPrefersColorScheme: true,
       },
