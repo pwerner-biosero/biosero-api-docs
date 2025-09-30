@@ -116,17 +116,17 @@ const config = {
               },
             ],
           },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'GitHub',
-                href: 'https://github.com/pwerner-biosero/biosero-api-docs',
-              },
-            ],
-          },
+          // {
+          //   title: 'More',
+          //   items: [
+          //     {
+          //       label: 'GitHub',
+          //       href: 'https://github.com/pwerner-biosero/biosero-api-docs',
+          //     },
+          //   ],
+          // },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Biosero, Inc. Built with Docusaurus.`,
+        
       },
       prism: {
         theme: prismThemes.github,
