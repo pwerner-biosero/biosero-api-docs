@@ -1,0 +1,915 @@
+# Order Client
+
+The `Order Client` is the primary interface for managing orders, order templates, and order lifecycle operations in Biosero Data Services. This document provides comprehensive documentation for all available methods and usage patterns based on the actual implementation.
+
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Constructors](#️-constructors)
+- [📝 Order Creation & Management](#-order-creation--management)
+- [📊 Order Retrieval Methods](#-order-retrieval-methods)
+- [🔄 Order Status Operations](#-order-status-operations)
+- [📋 Order Template Management](#-order-template-management)
+- [📦 Order Assignment & State](#-order-assignment--state)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `OrderClient` class is part of the `Biosero.DataModels` namespace and provides comprehensive methods to create, manage, and track orders in the Biosero Data Services system. It implements both synchronous and asynchronous patterns for all operations.
+
+**Namespace:** `Biosero.DataModels`  
+**Assembly:** `Biosero.DataModels, Version=0.5.10.0`  
+**Interfaces:** `IDisposable, IOrderClient`
+
+## 🏗️ Constructors
+
+The OrderClient provides three constructor overloads for different initialization scenarios:
+
+### OrderClient(string url)
+
+Creates a new instance with a fixed base URL.
+
+**Parameters:**
+- `url` (string): The base URL of the Data Services endpoint
+
+**Example:**
+```csharp
+var client = new OrderClient("http://localhost:8105/api/v2.0/");
+```
+
+## 📝 Order Creation & Management
+
+Methods for creating and managing orders in the system.
+
+### CreateOrder / CreateOrderAsync
+
+Creates a new order in the system.
+
+**Signatures:**
+```csharp
+public string CreateOrder(Order order)
+public async Task<string> CreateOrderAsync(Order order)
+```
+
+**Parameters:**
+- `order` (Order): The order object to create
+
+**Returns:**
+- `string` / `Task<string>`: The unique identifier of the created order
+
+**Example:**
+```csharp
+using var client = new OrderClient("http://localhost:8105/api/v2.0/");
+
+var newOrder = new Order
+{
+    Name = "Sample Processing Order",
+    // Configure order properties
+};
+
+// Asynchronous
+string orderId = await client.CreateOrderAsync(newOrder);
+
+// Synchronous
+string orderId = client.CreateOrder(newOrder);
+
+Console.WriteLine($"Created order with ID: {orderId}");
+```
+
+### UpdateOrder / UpdateOrderAsync
+
+Updates an existing order in the system.
+
+**Signatures:**
+```csharp
+public void UpdateOrder(Order order)
+public async Task UpdateOrderAsync(Order order)
+```
+
+**Parameters:**
+- `order` (Order): The updated order object
+
+**Returns:**
+- `void` / `Task`: No return value
+
+**Example:**
+```csharp
+using var client = new OrderClient("http://localhost:8105/api/v2.0/");
+
+var existingOrder = await client.GetOrderAsync("ORDER-123");
+existingOrder.Name = "Updated Order Name";
+
+await client.UpdateOrderAsync(existingOrder);
+```
+
+## 📊 Order Retrieval Methods
+
+Methods for retrieving orders based on various criteria.
+
+### GetOrder / GetOrderAsync
+
+Retrieves a specific order by its ID.
+
+**Signatures:**
+```csharp
+public Order GetOrder(string orderId)
+public async Task<Order> GetOrderAsync(string orderId)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+
+**Returns:**
+- `Order` / `Task<Order>`: The order object
+
+### GetOrders / GetOrdersAsync
+
+Retrieves orders created on or before a specified date.
+
+**Signatures:**
+```csharp
+public Order[] GetOrders(DateTimeOffset createdOnOrBefore, int limit, int offset)
+public async Task<Order[]> GetOrdersAsync(DateTimeOffset createdOnOrBefore, int limit, int offset)
+```
+
+**Parameters:**
+- `createdOnOrBefore` (DateTimeOffset): Date filter for order creation
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip (for paging)
+
+**Returns:**
+- `Order[]` / `Task<Order[]>`: Array of orders matching the criteria
+
+### GetCompletedOrders / GetCompletedOrdersAsync
+
+Retrieves orders that have completed execution.
+
+**Signatures:**
+```csharp
+public Order[] GetCompletedOrders(int limit, int offset)
+public async Task<Order[]> GetCompletedOrdersAsync(int limit, int offset)
+```
+
+**Parameters:**
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `Order[]` / `Task<Order[]>`: Array of completed orders
+
+### GetExecutingOrders / GetExecutingOrdersAsync
+
+Retrieves orders that are currently executing.
+
+**Signatures:**
+```csharp
+public Order[] GetExecutingOrders(int limit, int offset)
+public async Task<Order[]> GetExecutingOrdersAsync(int limit, int offset)
+```
+
+**Parameters:**
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `Order[]` / `Task<Order[]>`: Array of currently executing orders
+
+### GetUnassignedOrders / GetUnassignedOrdersAsync
+
+Retrieves orders that have not been assigned to any resource.
+
+**Signatures:**
+```csharp
+public Order[] GetUnassignedOrders(int limit, int offset)
+public async Task<Order[]> GetUnassignedOrdersAsync(int limit, int offset)
+```
+
+**Parameters:**
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `Order[]` / `Task<Order[]>`: Array of unassigned orders
+
+## 🔄 Order Status Operations
+
+Methods for managing order status and tracking execution progress.
+
+### GetOrderStatus / GetOrderStatusAsync
+
+Retrieves the current status of an order.
+
+**Signatures:**
+```csharp
+public OrderStatus GetOrderStatus(string orderId)
+public async Task<OrderStatus> GetOrderStatusAsync(string orderId)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+
+**Returns:**
+- `OrderStatus` / `Task<OrderStatus>`: The current status enum value
+
+### UpdateOrderStatus / UpdateOrderStatusAsync
+
+Updates the status of an order with optional details.
+
+**Signatures:**
+```csharp
+public void UpdateOrderStatus(string orderId, OrderStatus status, string details)
+public async Task UpdateOrderStatusAsync(string orderId, OrderStatus status, string details)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+- `status` (OrderStatus): The new status to set
+- `details` (string): Optional details about the status change
+
+**Returns:**
+- `void` / `Task`: No return value
+
+**Example:**
+```csharp
+using var client = new OrderClient("http://localhost:8105/api/v2.0/");
+
+// Check current status
+var currentStatus = await client.GetOrderStatusAsync("ORDER-123");
+Console.WriteLine($"Current status: {currentStatus}");
+
+// Update status
+await client.UpdateOrderStatusAsync("ORDER-123", OrderStatus.InProgress, 
+    "Order processing started at workstation A");
+```
+
+## 📋 Order Template Management
+
+Methods for managing reusable order templates.
+
+### GetOrderTemplates / GetOrderTemplatesAsync
+
+Retrieves available order templates.
+
+**Signatures:**
+```csharp
+public OrderTemplate[] GetOrderTemplates(int limit, int offset)
+public async Task<OrderTemplate[]> GetOrderTemplatesAsync(int limit, int offset)
+```
+
+**Parameters:**
+- `limit` (int): Maximum number of templates to return
+- `offset` (int): Number of templates to skip
+
+**Returns:**
+- `OrderTemplate[]` / `Task<OrderTemplate[]>`: Array of order templates
+
+### RegisterOrderTemplate / RegisterOrderTemplateAsync
+
+Registers a new order template in the system.
+
+**Signatures:**
+```csharp
+public void RegisterOrderTemplate(OrderTemplate template)
+public async Task RegisterOrderTemplateAsync(OrderTemplate template)
+```
+
+**Parameters:**
+- `template` (OrderTemplate): The order template to register
+
+**Returns:**
+- `void` / `Task`: No return value
+
+### DeleteOrderTemplate / DeleteOrderTemplateAsync
+
+Deletes an existing order template.
+
+**Signatures:**
+```csharp
+public void DeleteOrderTemplate(string templateName)
+public async Task DeleteOrderTemplateAsync(string templateName)
+```
+
+**Parameters:**
+- `templateName` (string): The name of the template to delete
+
+**Returns:**
+- `void` / `Task`: No return value
+
+**Example:**
+```csharp
+using var client = new OrderClient("http://localhost:8105/api/v2.0/");
+
+// Get available templates
+var templates = await client.GetOrderTemplatesAsync(50, 0);
+Console.WriteLine($"Available templates: {templates.Length}");
+
+// Register a new template
+var newTemplate = new OrderTemplate
+{
+    Name = "Standard Sample Processing",
+    // Configure template properties
+};
+await client.RegisterOrderTemplateAsync(newTemplate);
+
+// Delete a template
+await client.DeleteOrderTemplateAsync("Old Template Name");
+```
+
+## 📦 Order Assignment & State
+
+Methods for managing order assignments and persistent state.
+
+### TryAssignOrder / TryAssignOrderAsync
+
+Attempts to assign an order to a specific resource.
+
+**Signatures:**
+```csharp
+public bool TryAssignOrder(string orderId, string identiferToAssignTo)
+public async Task<bool> TryAssignOrderAsync(string orderId, string identiferToAssignTo)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+- `identiferToAssignTo` (string): The identifier of the resource to assign to
+
+**Returns:**
+- `bool` / `Task<bool>`: True if assignment was successful, false otherwise
+
+### PersistState / PersistStateAsync
+
+Persists custom state information for an order.
+
+**Signatures:**
+```csharp
+public void PersistState(string orderId, string state)
+public async Task PersistStateAsync(string orderId, string state)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+- `state` (string): The state information to persist (JSON string)
+
+**Returns:**
+- `void` / `Task`: No return value
+
+### SetOutputParameters / SetOutputParametersAsync
+
+Sets output parameters for an order.
+
+**Signatures:**
+```csharp
+public void SetOutputParameters(string orderId, Dictionary<string, string> parameters)
+public async Task SetOutputParametersAsync(string orderId, Dictionary<string, string> parameters)
+```
+
+**Parameters:**
+- `orderId` (string): The unique identifier of the order
+- `parameters` (Dictionary&lt;string, string&gt;): Key-value pairs of output parameters
+
+**Returns:**
+- `void` / `Task`: No return value
+
+**Example:**
+```csharp
+using var client = new OrderClient("http://localhost:8105/api/v2.0/");
+
+// Try to assign order to a workstation
+bool assigned = await client.TryAssignOrderAsync("ORDER-123", "WORKSTATION-A");
+if (assigned)
+{
+    Console.WriteLine("Order successfully assigned");
+    
+    // Persist some state information
+    var stateData = JsonConvert.SerializeObject(new { Step = 1, StartTime = DateTime.Now });
+    await client.PersistStateAsync("ORDER-123", stateData);
+    
+    // Set output parameters
+    var outputParams = new Dictionary<string, string>
+    {
+        { "ProcessingTime", "00:15:30" },
+        { "QualityCheck", "Passed" }
+    };
+    await client.SetOutputParametersAsync("ORDER-123", outputParams);
+}
+```
+
+### Dispose()
+
+Properly disposes of the OrderClient and its resources.
+
+**Signature:**
+```csharp
+public void Dispose()
+```
+
+**Note:** The OrderClient implements `IDisposable`. Use `using` statements or call `Dispose()` explicitly to ensure proper cleanup of HTTP resources.
+
+## ⚠️ Error Handling
+
+The OrderClient can throw various exceptions during operation. Proper error handling is essential for robust applications.
+
+### Common Exception Types:
+- **HttpRequestException** - Network connectivity issues
+- **TaskCanceledException** - Request timeouts  
+- **Exception** - General API errors with HTTP status codes
+- **ArgumentException** - Invalid parameters
+
+### HTTP Status Code Handling:
+- **All errors** - Throws `Exception` with status code and reason phrase
+- **Assignment failures** - `TryAssignOrder` returns `false` instead of throwing
+
+### Recommended Error Handling Pattern:
+
+```csharp
+public async Task<Order> SafeGetOrderAsync(string orderId)
+{
+    try
+    {
+        using var client = new OrderClient(_baseUrl);
+        return await client.GetOrderAsync(orderId);
+    }
+    catch (HttpRequestException httpEx)
+    {
+        _logger.LogError("Network error getting order {OrderId}: {Error}", orderId, httpEx.Message);
+        return null;
+    }
+    catch (TaskCanceledException timeoutEx)
+    {
+        _logger.LogError("Timeout getting order {OrderId}: {Error}", orderId, timeoutEx.Message);
+        return null;
+    }
+    catch (Exception ex) when (ex.Message.Contains("404"))
+    {
+        _logger.LogInformation("Order not found: {OrderId}", orderId);
+        return null;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError("API error getting order {OrderId}: {Error}", orderId, ex.Message);
+        throw;
+    }
+}
+```
+
+## � Examples
+
+### Example 1: Complete Order Lifecycle
+
+```csharp
+using Biosero.DataModels;
+using Biosero.DataModels.Ordering;
+
+public class OrderManagementExample
+{
+    private readonly string _baseUrl = "http://localhost:8105/api/v2.0/";
+    
+    public async Task CompleteOrderLifecycleAsync()
+    {
+        using var client = new OrderClient(_baseUrl);
+        
+        // 1. Create a new order
+        var newOrder = new Order
+        {
+            Name = "Sample Analysis Order",
+            Priority = OrderPriority.Normal,
+            // Configure other order properties
+        };
+        
+        string orderId = await client.CreateOrderAsync(newOrder);
+        Console.WriteLine($"Created order: {orderId}");
+        
+        // 2. Try to assign to a workstation
+        bool assigned = await client.TryAssignOrderAsync(orderId, "WORKSTATION-001");
+        if (assigned)
+        {
+            // 3. Update status to indicate processing started
+            await client.UpdateOrderStatusAsync(orderId, OrderStatus.InProgress, 
+                "Processing started at workstation");
+            
+            // 4. Persist intermediate state
+            var state = new { CurrentStep = "Sample Preparation", Progress = 25 };
+            await client.PersistStateAsync(orderId, JsonConvert.SerializeObject(state));
+            
+            // 5. Complete processing and set output parameters
+            var results = new Dictionary<string, string>
+            {
+                { "Concentration", "2.5 mg/mL" },
+                { "Purity", "99.2%" },
+                { "Volume", "1.5 mL" }
+            };
+            await client.SetOutputParametersAsync(orderId, results);
+            
+            // 6. Mark as completed
+            await client.UpdateOrderStatusAsync(orderId, OrderStatus.Completed, 
+                "Analysis completed successfully");
+        }
+    }
+}
+```
+
+### Example 2: Order Template Management
+
+```csharp
+public async Task ManageOrderTemplatesAsync()
+{
+    using var client = new OrderClient(_baseUrl);
+    
+    // Get existing templates
+    var templates = await client.GetOrderTemplatesAsync(100, 0);
+    Console.WriteLine($"Found {templates.Length} existing templates");
+    
+    // Create and register a new template
+    var template = new OrderTemplate
+    {
+        Name = "Standard PCR Analysis",
+        Description = "Template for standard PCR analysis workflow",
+        // Configure template parameters and steps
+    };
+    
+    await client.RegisterOrderTemplateAsync(template);
+    Console.WriteLine($"Registered new template: {template.Name}");
+    
+    // Use template to create orders (implementation depends on Order constructor)
+    // var orderFromTemplate = new Order(template);
+    // string orderId = await client.CreateOrderAsync(orderFromTemplate);
+}
+```
+
+### Example 3: Order Monitoring Dashboard
+
+```csharp
+public async Task DisplayOrderDashboardAsync()
+{
+    using var client = new OrderClient(_baseUrl);
+    
+    // Get orders by status
+    var executingOrders = await client.GetExecutingOrdersAsync(50, 0);
+    var completedOrders = await client.GetCompletedOrdersAsync(20, 0);
+    var unassignedOrders = await client.GetUnassignedOrdersAsync(30, 0);
+    
+    Console.WriteLine("=== Order Dashboard ===");
+    Console.WriteLine($"Executing: {executingOrders.Length}");
+    Console.WriteLine($"Completed: {completedOrders.Length}");
+    Console.WriteLine($"Unassigned: {unassignedOrders.Length}");
+    
+    // Show details for executing orders
+    Console.WriteLine("\n--- Executing Orders ---");
+    foreach (var order in executingOrders)
+    {
+        var status = await client.GetOrderStatusAsync(order.Id);
+        Console.WriteLine($"{order.Id}: {order.Name} - Status: {status}");
+    }
+    
+    // Show recent completed orders
+    Console.WriteLine("\n--- Recently Completed ---");
+    foreach (var order in completedOrders.Take(5))
+    {
+        Console.WriteLine($"{order.Id}: {order.Name} - Completed: {order.CompletedAt}");
+    }
+}
+```
+
+### Example 4: Batch Order Processing
+
+```csharp
+public async Task ProcessBatchOrdersAsync(string[] orderIds)
+{
+    using var client = new OrderClient(_baseUrl);
+    
+    var tasks = orderIds.Select(async orderId =>
+    {
+        try
+        {
+            var order = await client.GetOrderAsync(orderId);
+            var currentStatus = await client.GetOrderStatusAsync(orderId);
+            
+            // Only process orders that are ready
+            if (currentStatus == OrderStatus.Ready)
+            {
+                // Try to assign to available workstation
+                var workstations = new[] { "WS-001", "WS-002", "WS-003" };
+                
+                foreach (var workstation in workstations)
+                {
+                    bool assigned = await client.TryAssignOrderAsync(orderId, workstation);
+                    if (assigned)
+                    {
+                        await client.UpdateOrderStatusAsync(orderId, OrderStatus.InProgress,
+                            $"Assigned to {workstation}");
+                        
+                        Console.WriteLine($"Order {orderId} assigned to {workstation}");
+                        break;
+                    }
+                }
+            }
+            
+            return new { OrderId = orderId, Status = currentStatus, Success = true };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing order {orderId}: {ex.Message}");
+            return new { OrderId = orderId, Status = OrderStatus.Error, Success = false };
+        }
+    });
+    
+    var results = await Task.WhenAll(tasks);
+    var successful = results.Count(r => r.Success);
+    
+    Console.WriteLine($"Processed {successful}/{orderIds.Length} orders successfully");
+}
+```
+
+### Example 5: Historical Order Analysis
+
+```csharp
+public async Task AnalyzeOrderHistoryAsync(DateTimeOffset since)
+{
+    using var client = new OrderClient(_baseUrl);
+    
+    var allOrders = new List<Order>();
+    const int pageSize = 100;
+    int offset = 0;
+    Order[] page;
+    
+    // Paginate through all orders since specified date
+    do
+    {
+        page = await client.GetOrdersAsync(DateTimeOffset.Now, pageSize, offset);
+        var filteredOrders = page.Where(o => o.CreatedAt >= since);
+        allOrders.AddRange(filteredOrders);
+        offset += pageSize;
+        
+    } while (page.Length == pageSize);
+    
+    // Analyze the data
+    var totalOrders = allOrders.Count;
+    var completedOrders = allOrders.Count(o => o.Status == OrderStatus.Completed);
+    var avgProcessingTime = allOrders
+        .Where(o => o.CompletedAt.HasValue)
+        .Average(o => (o.CompletedAt.Value - o.CreatedAt).TotalMinutes);
+    
+    Console.WriteLine($"=== Order Analysis (since {since:yyyy-MM-dd}) ===");
+    Console.WriteLine($"Total Orders: {totalOrders}");
+    Console.WriteLine($"Completed: {completedOrders} ({completedOrders * 100.0 / totalOrders:F1}%)");
+    Console.WriteLine($"Avg Processing Time: {avgProcessingTime:F1} minutes");
+    
+    // Group by order type or other criteria
+    var ordersByType = allOrders.GroupBy(o => o.OrderType);
+    foreach (var group in ordersByType)
+    {
+        Console.WriteLine($"{group.Key}: {group.Count()} orders");
+    }
+}
+```
+
+## 🎯 Best Practices
+
+### 1. **Always Use Using Statements for Proper Disposal**
+```csharp
+// ✅ Good - Automatic disposal
+using var client = new OrderClient(_baseUrl);
+var order = await client.GetOrderAsync("ORDER-123");
+
+// ✅ Alternative - Manual disposal
+var client = new OrderClient(_baseUrl);
+try
+{
+    var order = await client.GetOrderAsync("ORDER-123");
+    return order;
+}
+finally
+{
+    client.Dispose();
+}
+```
+
+### 2. **Prefer Async Methods for Better Performance**
+```csharp
+// ✅ Good - Non-blocking, scalable
+var order = await client.GetOrderAsync("ORDER-123");
+var status = await client.GetOrderStatusAsync("ORDER-123");
+
+// ❌ Avoid - Blocking threads
+var order = client.GetOrder("ORDER-123");
+var status = client.GetOrderStatus("ORDER-123");
+```
+
+### 3. **Handle Assignment Failures Gracefully**
+```csharp
+// ✅ Good - Check assignment result and handle failures
+var workstations = new[] { "WS-001", "WS-002", "WS-003" };
+bool assigned = false;
+
+foreach (var workstation in workstations)
+{
+    assigned = await client.TryAssignOrderAsync(orderId, workstation);
+    if (assigned)
+    {
+        _logger.LogInformation("Order {OrderId} assigned to {Workstation}", 
+            orderId, workstation);
+        break;
+    }
+}
+
+if (!assigned)
+{
+    _logger.LogWarning("Could not assign order {OrderId} to any workstation", orderId);
+    // Handle unassigned order appropriately
+}
+```
+
+### 4. **Use Structured State Persistence**
+```csharp
+// ✅ Good - Use structured objects for state
+public class OrderState
+{
+    public int CurrentStep { get; set; }
+    public DateTime LastUpdate { get; set; }
+    public Dictionary<string, object> Data { get; set; } = new();
+}
+
+var state = new OrderState
+{
+    CurrentStep = 3,
+    LastUpdate = DateTime.Now,
+    Data = new() { { "Temperature", 25.5 }, { "Operator", "John Doe" } }
+};
+
+await client.PersistStateAsync(orderId, JsonConvert.SerializeObject(state));
+```
+
+### 5. **Implement Proper Pagination for Large Datasets**
+```csharp
+// ✅ Good - Paginated retrieval with reasonable page sizes
+public async Task<List<Order>> GetAllCompletedOrdersAsync()
+{
+    var allOrders = new List<Order>();
+    const int pageSize = 50; // Reasonable page size
+    int offset = 0;
+    Order[] page;
+    
+    do
+    {
+        page = await client.GetCompletedOrdersAsync(pageSize, offset);
+        allOrders.AddRange(page);
+        offset += pageSize;
+        
+        // Optional: Add delay to avoid overwhelming the server
+        if (page.Length == pageSize)
+        {
+            await Task.Delay(100);
+        }
+        
+    } while (page.Length == pageSize);
+    
+    return allOrders;
+}
+```
+
+### 6. **Use Enum Values Appropriately for Status Updates**
+```csharp
+// ✅ Good - Use appropriate status transitions
+public async Task ProcessOrderAsync(string orderId)
+{
+    // Check current status before updating
+    var currentStatus = await client.GetOrderStatusAsync(orderId);
+    
+    if (currentStatus == OrderStatus.Ready)
+    {
+        await client.UpdateOrderStatusAsync(orderId, OrderStatus.InProgress, 
+            "Processing started");
+        
+        try
+        {
+            // Perform processing...
+            
+            await client.UpdateOrderStatusAsync(orderId, OrderStatus.Completed,
+                "Processing completed successfully");
+        }
+        catch (Exception ex)
+        {
+            await client.UpdateOrderStatusAsync(orderId, OrderStatus.Error,
+                $"Processing failed: {ex.Message}");
+            throw;
+        }
+    }
+}
+```
+
+### 7. **Validate Order Data Before Creation**
+```csharp
+// ✅ Good - Validate order before creation
+public async Task<string> CreateValidatedOrderAsync(Order order)
+{
+    // Validate required fields
+    if (string.IsNullOrWhiteSpace(order.Name))
+        throw new ArgumentException("Order name is required");
+    
+    if (order.Steps == null || !order.Steps.Any())
+        throw new ArgumentException("Order must have at least one step");
+    
+    // Validate business rules
+    if (order.Priority == OrderPriority.Emergency && !IsAuthorizedForEmergencyOrders())
+        throw new UnauthorizedAccessException("Not authorized for emergency orders");
+    
+    using var client = new OrderClient(_baseUrl);
+    return await client.CreateOrderAsync(order);
+}
+```
+
+### 8. **Use Output Parameters Effectively**
+```csharp
+// ✅ Good - Structured output parameters with validation
+public async Task SetOrderResultsAsync(string orderId, AnalysisResult result)
+{
+    var parameters = new Dictionary<string, string>();
+    
+    // Add results with proper formatting
+    if (result.Concentration.HasValue)
+        parameters["Concentration"] = $"{result.Concentration:F2} {result.ConcentrationUnit}";
+    
+    if (result.Purity.HasValue)
+        parameters["Purity"] = $"{result.Purity:F1}%";
+    
+    if (!string.IsNullOrEmpty(result.QualityGrade))
+        parameters["QualityGrade"] = result.QualityGrade;
+    
+    // Add metadata
+    parameters["AnalysisDateTime"] = DateTime.Now.ToString("o");
+    parameters["Operator"] = Environment.UserName;
+    parameters["InstrumentId"] = result.InstrumentId;
+    
+    using var client = new OrderClient(_baseUrl);
+    await client.SetOutputParametersAsync(orderId, parameters);
+}
+```
+
+### 9. **Monitor Order Processing with Logging**
+```csharp
+// ✅ Good - Comprehensive logging for order operations
+public async Task<Order> GetOrderWithLoggingAsync(string orderId)
+{
+    using var client = new OrderClient(_baseUrl);
+    
+    _logger.LogInformation("Retrieving order {OrderId}", orderId);
+    
+    try
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var order = await client.GetOrderAsync(orderId);
+        
+        _logger.LogInformation("Retrieved order {OrderId} in {ElapsedMs}ms - Status: {Status}", 
+            orderId, stopwatch.ElapsedMilliseconds, order.Status);
+            
+        return order;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to retrieve order {OrderId}", orderId);
+        throw;
+    }
+}
+```
+
+### 10. **Implement Circuit Breaker Pattern for Resilience**
+```csharp
+// ✅ Good - Circuit breaker for external service calls
+public class ResilientOrderService
+{
+    private readonly OrderClient _client;
+    private readonly CircuitBreaker _circuitBreaker;
+    
+    public ResilientOrderService(OrderClient client)
+    {
+        _client = client;
+        _circuitBreaker = new CircuitBreaker(
+            maxFailures: 5, 
+            timeout: TimeSpan.FromMinutes(1));
+    }
+    
+    public async Task<Order> GetOrderAsync(string orderId)
+    {
+        return await _circuitBreaker.ExecuteAsync(async () =>
+        {
+            using var client = new OrderClient(_baseUrl);
+            return await client.GetOrderAsync(orderId);
+        });
+    }
+}
+```
+
+## 🔗 Related Documentation
+
+- **QueryClient API** - For querying system data
+- **Biosero.DataModels** - Data model documentation (Coming Soon)
+- **Configuration Guide** - Setup and configuration (Coming Soon)
+- **TestApp Examples** - Real-world usage examples (Coming Soon)
+
+---
+
+*This documentation is based on the OrderClient class from Biosero.DataModels. For the most up-to-date API reference, use F12 in VS Code to view the decompiled source.*
+
+*Last updated: September 27, 2025*

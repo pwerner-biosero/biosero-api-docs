@@ -46,18 +46,35 @@ const config = {
       'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
-        docs: {
-          sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-        },
-
+        docs: false, // Disable the default docs plugin
+        blog: false, // Disable the blog
         theme: {
           customCss: './src/css/custom.css',
         },
       }),
+    ],
+  ],
+
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'csharp-sdk',
+        path: 'docs/CSharp SDK',
+        routeBasePath: 'csharp-sdk',
+        sidebarPath: './sidebars-csharp.js',
+        editUrl: 'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'python-sdk',
+        path: 'docs/Python SDK',
+        routeBasePath: 'python-sdk',
+        sidebarPath: './sidebars-python.js',
+        editUrl: 'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
     ],
   ],
 
@@ -79,16 +96,59 @@ const config = {
         },
         items: [
           {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
+            type: 'dropdown',
+            label: 'C# SDK',
             position: 'left',
-            label: 'Documentation',
-          }
-          // {
-          //   href: 'https://github.com/facebook/docusaurus',
-          //   label: 'GitHub',
-          //   position: 'right',
-          // },
+            items: [
+              {
+                type: 'docSidebar',
+                sidebarId: 'csharpSidebar',
+                docsPluginId: 'csharp-sdk',
+                label: 'Documentation',
+              },
+              {
+                to: '/csharp-sdk/intro',
+                label: 'Getting Started',
+              },
+              {
+                to: '/csharp-sdk/CSharp Query Client',
+                label: 'Query Client',
+              },
+              {
+                to: '/csharp-sdk/CSharp Order Client',
+                label: 'Order Client',
+              },
+            ],
+          },
+          {
+            type: 'dropdown',
+            label: 'Python SDK',
+            position: 'left',
+            items: [
+              {
+                type: 'docSidebar',
+                sidebarId: 'pythonSidebar',
+                docsPluginId: 'python-sdk',
+                label: 'Documentation',
+              },
+              {
+                to: '/python-sdk/intro',
+                label: 'Getting Started',
+              },
+              {
+                to: '/python-sdk/Query Client',
+                label: 'Query Client',
+              },
+              {
+                to: '/python-sdk/Order Client',
+                label: 'Order Client',
+              },
+              {
+                to: '/python-sdk/Order Scheduler',
+                label: 'Order Scheduler',
+              },
+            ],
+          },
         ],
       },
       footer: {

@@ -1,0 +1,97 @@
+# C# SDK Overview
+
+Welcome to the Biosero Data Services C# SDK documentation. This SDK provides a comprehensive .NET interface for interacting with Biosero Data Services.
+
+## Key Features
+
+- **Type Safety**: Strongly typed C# interfaces with full IntelliSense support
+- **Async/Await Support**: Full asynchronous programming support with Task-based patterns
+- **Comprehensive API Coverage**: Complete access to all Data Services endpoints
+- **Error Handling**: Robust error handling with detailed exception information
+- **Dependency Injection**: Compatible with .NET dependency injection containers
+
+## Getting Started
+
+### Prerequisites
+
+- **.NET Framework 4.6.1+** or **.NET Core 2.0+** or **.NET 5+**
+- **Visual Studio 2019+** or **Visual Studio Code** with C# extension
+- **Active Biosero License** - Contact Biosero for licensing information
+
+### Obtaining the SDK
+
+The C# SDK is distributed as a compiled DLL directly from Biosero. To obtain the latest version:
+
+1. Contact your Biosero representative or support team
+2. Request the C# SDK DLL for your version of Data Services
+3. Download the provided `Biosero.DataModels.dll` file to your local machine
+
+### Installation
+
+The C# SDK is provided by Biosero as a compiled DLL file. Contact your Biosero representative to obtain the latest version.
+
+#### Adding the DLL Reference
+
+**Using Visual Studio:**
+1. Right-click on your project in Solution Explorer
+2. Select "Add" → "Reference..."
+3. Click "Browse" and navigate to the downloaded `Biosero.DataModels.dll`
+4. Select the DLL and click "Add"
+
+**Using .NET CLI:**
+```bash
+# Add reference to the DLL
+dotnet add reference path/to/Biosero.DataModels.dll
+```
+
+**Using PackageReference in .csproj:**
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Reference Include="Biosero.DataModels">
+      <HintPath>path\to\Biosero.DataModels.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
+```
+
+> **Note**: Replace `path/to/Biosero.DataModels.dll` with the actual path to your downloaded DLL file.
+
+### Basic Usage
+
+```csharp
+using Biosero.DataModels;
+
+// Create a client instance
+using var queryClient = new QueryClient("http://localhost:8105/api/v2.0/");
+
+// Query for an identity
+var identity = await queryClient.GetIdentityAsync("SAMPLE-123");
+if (identity != null)
+{
+    Console.WriteLine($"Found identity: {identity.Name}");
+}
+```
+
+## Architecture
+
+The C# SDK is built on:
+- **.NET Standard 2.0** - Compatible with .NET Framework 4.6.1+ and .NET Core 2.0+
+- **HttpClient** - Modern HTTP communication
+- **System.Text.Json** - High-performance JSON serialization
+- **IDisposable** - Proper resource management
+
+## Client Libraries
+
+- **[Query Client](./CSharp%20Query%20Client)** - Query and retrieve data from the system
+- **[Order Client](./CSharp%20Order%20Client)** - Manage orders, templates, and workflows
+
+## Support
+
+For additional support and documentation, visit:
+- [Biosero Support Portal](https://support.biosero.com)
+- [Developer Documentation](https://docs.biosero.com)

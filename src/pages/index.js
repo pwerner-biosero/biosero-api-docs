@@ -19,8 +19,13 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/Python SDK/Query Client">
-            Get Started
+            to="/python-sdk/intro">
+            Python SDK
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/csharp-sdk/intro">
+            C# SDK
           </Link>
         </div>
       </div>

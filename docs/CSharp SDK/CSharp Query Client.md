@@ -19,9 +19,9 @@ The `Query Client` is the primary interface for interacting with Biosero Data Se
 
 ## 🔍 Overview
 
-The `QueryClient` class is part of the `Biosero.DataServices.RestClient` namespace and provides comprehensive methods to query and retrieve data from Biosero Data Services. It implements both synchronous and asynchronous patterns for all operations.
+The `QueryClient` class is part of the `Biosero.DataModels` namespace and provides comprehensive methods to query and retrieve data from Biosero Data Services. It implements both synchronous and asynchronous patterns for all operations.
 
-**Namespace:** `Biosero.DataServices.RestClient`  
+**Namespace:** `Biosero.DataModels`  
 **Assembly:** `Biosero.DataModels, Version=0.5.10.0`  
 **Interfaces:** `IDisposable, IQueryClient`
 
@@ -480,7 +480,7 @@ public async Task<Identity> SafeGetIdentityAsync(string identifier)
 ### Example 1: Basic Identity Operations
 
 ```csharp
-using Biosero.DataServices.RestClient;
+using Biosero.DataModels;
 using Biosero.DataModels.Resources;
 
 public class DataServiceExample
@@ -859,6 +859,6 @@ public async Task<Identity> GetCachedIdentityAsync(string itemId)
 
 ---
 
-*This documentation is based on the QueryClient class from Biosero.DataServices.RestClient. For the most up-to-date API reference, use F12 in VS Code to view the decompiled source.*
+*This documentation is based on the QueryClient class from Biosero.DataModels. For the most up-to-date API reference, use F12 in VS Code to view the decompiled source.*
 
 *Last updated: September 27, 2025*
