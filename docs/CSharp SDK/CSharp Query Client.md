@@ -1,0 +1,864 @@
+# Query Client
+
+The `Query Client` is the primary interface for interacting with Biosero Data Services. This document provides comprehensive documentation for all available methods and usage patterns based on the actual implementation.
+
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Constructors](#️-constructors)
+- [🆔 Identity Methods](#-identity-methods)
+- [🔍 Search Methods](#-search-methods)  
+- [📍 Location Methods](#-location-methods)
+- [📦 Container Methods](#-container-methods)
+- [⚖️ Weight & Volume Methods](#️-weight--volume-methods)
+- [📅 Event Methods](#-event-methods)
+- [� Utility Methods](#-utility-methods)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `QueryClient` class is part of the `Biosero.DataServices.RestClient` namespace and provides comprehensive methods to query and retrieve data from Biosero Data Services. It implements both synchronous and asynchronous patterns for all operations.
+
+**Namespace:** `Biosero.DataServices.RestClient`  
+**Assembly:** `Biosero.DataModels, Version=0.5.10.0`  
+**Interfaces:** `IDisposable, IQueryClient`
+
+## 🏗️ Constructors
+
+The QueryClient provides three constructor overloads for different initialization scenarios:
+
+### QueryClient(string url)
+
+Creates a new instance with a fixed base URL.
+
+**Parameters:**
+- `url` (string): The base URL of the Data Services endpoint
+
+**Example:**
+```csharp
+var client = new QueryClient("http://localhost:8105/api/v2.0/");
+```
+
+## 🆔 Identity Methods
+
+Identity operations allow you to retrieve and search for devices, samples, and other resources in the system.
+
+### GetIdentity / GetIdentityAsync
+
+Retrieves identity information by ID.
+
+**Signatures:**
+```csharp
+public Identity GetIdentity(string itemId)
+public async Task<Identity> GetIdentityAsync(string itemId)
+```
+
+**Parameters:**
+- `itemId` (string): The unique identifier of the resource
+
+**Returns:**
+- `Identity` / `Task<Identity>`: Identity object or null if not found
+
+**Example:**
+```csharp
+QueryClient client = new QueryClient("http://localhost:8105/api/v2.0/");
+
+// Synchronous
+var identity = client.GetIdentity("DEVICE-001");
+
+// Asynchronous  
+var identity = await client.GetIdentityAsync("DEVICE-001");
+
+if (identity != null)
+{
+    Console.WriteLine($"Identity Name: {identity.Name}");
+    Console.WriteLine($"Identity Type: {identity.GetType()}");
+}
+```
+
+### GetIdentityByName / GetIdentityByNameAsync
+
+Retrieves identity information by name.
+
+**Signatures:**
+```csharp
+public Identity GetIdentityByName(string itemName)
+public async Task<Identity> GetIdentityByNameAsync(string itemName)
+```
+
+**Parameters:**
+- `itemName` (string): The name of the resource
+
+**Returns:**
+- `Identity` / `Task<Identity>`: Identity object matching the name
+
+### GetChildIdentities / GetChildIdentitiesAsync
+
+Retrieves child identities for a parent type.
+
+**Signatures:**
+```csharp
+public Identity[] GetChildIdentities(string parentTypeId, int limit, int offset)
+public async Task<Identity[]> GetChildIdentitiesAsync(string parentTypeId, int limit, int offset)
+```
+
+**Parameters:**
+- `parentTypeId` (string): The parent type identifier
+- `limit` (int): Maximum number of results to return
+- `offset` (int): Number of results to skip (for paging)
+
+**Returns:**
+- `Identity[]` / `Task<Identity[]>`: Array of child identities
+
+### GetIdentitiesByPatternMatch / GetIdentitiesByPatternMatchAsync
+
+Searches for identities using pattern matching on multiple fields.
+
+**Signatures:**
+```csharp
+public Identity[] GetIdentitiesByPatternMatch(string idPattern, string namePattern, 
+    string typePattern, string descriptionPattern, MatchCriteria idAndNameCriteria, 
+    int limit, int offset)
+
+public async Task<Identity[]> GetIdentitiesByPatternMatchAsync(string idPattern, 
+    string namePattern, string typePattern, string descriptionPattern, 
+    MatchCriteria idAndNameCriteria, int limit, int offset)
+```
+
+**Parameters:**
+- `idPattern` (string): Pattern to match against identity IDs
+- `namePattern` (string): Pattern to match against names
+- `typePattern` (string): Pattern to match against types
+- `descriptionPattern` (string): Pattern to match against descriptions
+- `idAndNameCriteria` (MatchCriteria): Matching criteria enum
+- `limit` (int): Maximum number of results
+- `offset` (int): Results offset for paging
+
+**Returns:**
+- `Identity[]` / `Task<Identity[]>`: Array of matching identities
+
+### GetIdentitiesByPropertyValuePatternMatch / GetIdentitiesByPropertyValuePatternMatchAsync
+
+**Note:** These methods are declared but throw `NotImplementedException`.
+
+**Signatures:**
+```csharp
+public Identity[] GetIdentitiesByPropertyValuePatternMatch(
+    Dictionary<string, string> propertySearchKeyValues, MatchCriteria criteria, 
+    string typePattern, int limit, int offset)
+
+public async Task<Identity[]> GetIdentitiesByPropertyValuePatternMatchAsync(
+    Dictionary<string, string> propertySearchKeyValues, MatchCriteria criteria, 
+    string typePattern, int limit, int offset)
+```
+
+## � Search Methods
+
+Methods for searching materials and samples within the system.
+
+### FindMaterial / FindMaterialAsync
+
+Searches for materials based on specified criteria.
+
+**Signatures:**
+```csharp
+public MaterialInContainerSearchResult[] FindMaterial(MaterialSearchParameters searchParameters, 
+    int limit, int offset)
+public async Task<MaterialInContainerSearchResult[]> FindMaterialAsync(
+    MaterialSearchParameters searchParameters, int limit, int offset)
+```
+
+**Parameters:**
+- `searchParameters` (MaterialSearchParameters): Criteria for material search
+- `limit` (int): Maximum number of results to return
+- `offset` (int): Number of results to skip
+
+**Returns:**
+- `MaterialInContainerSearchResult[]` / `Task<MaterialInContainerSearchResult[]>`: Array of material search results
+
+### FindSample / FindSampleAsync
+
+Searches for samples based on specified criteria.
+
+**Signatures:**
+```csharp
+public SampleInContainerSearchResult[] FindSample(SampleSearchParameters searchParameters, 
+    int limit, int offset)
+public async Task<SampleInContainerSearchResult[]> FindSampleAsync(
+    SampleSearchParameters searchParameters, int limit, int offset)
+```
+
+**Parameters:**
+- `searchParameters` (SampleSearchParameters): Criteria for sample search
+- `limit` (int): Maximum number of results to return
+- `offset` (int): Number of results to skip
+
+**Returns:**
+- `SampleInContainerSearchResult[]` / `Task<SampleInContainerSearchResult[]>`: Array of sample search results
+
+## 📍 Location Methods
+
+Methods for retrieving location information and managing spatial relationships.
+
+### GetLocation / GetLocationAsync
+
+Retrieves location information for an item.
+
+**Signatures:**
+```csharp
+public Location GetLocation(string itemId)
+public async Task<Location> GetLocationAsync(string itemId)
+```
+
+**Parameters:**
+- `itemId` (string): The identifier of the item
+
+**Returns:**
+- `Location` / `Task<Location>`: Location object containing spatial information
+
+### GetLocationPath / GetLocationPathAsync
+
+Retrieves the full location path for an item.
+
+**Signatures:**
+```csharp
+public string GetLocationPath(string itemId)
+public async Task<string> GetLocationPathAsync(string itemId)
+```
+
+**Parameters:**
+- `itemId` (string): The identifier of the item
+
+**Returns:**
+- `string` / `Task<string>`: String representation of the location path
+
+### GetItemsAtLocation / GetItemsAtLocationAsync
+
+Retrieves all items present at a specific location.
+
+**Signatures:**
+```csharp
+public Identity[] GetItemsAtLocation(string locationId, int limit, int offset)
+public async Task<Identity[]> GetItemsAtLocationAsync(string locationId, int limit, int offset)
+```
+
+**Parameters:**
+- `locationId` (string): The identifier of the location
+- `limit` (int): Maximum number of results to return
+- `offset` (int): Number of results to skip
+
+**Returns:**
+- `Identity[]` / `Task<Identity[]>`: Array of identities at the location
+
+## 📦 Container Methods
+
+Methods for working with containers and their contents.
+
+### GetMaterialsInContainer / GetMaterialsInContainerAsync
+
+Retrieves all materials within a specific container.
+
+**Signatures:**
+```csharp
+public MaterialInContainerSearchResult[] GetMaterialsInContainer(string containerId)
+public async Task<MaterialInContainerSearchResult[]> GetMaterialsInContainerAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `MaterialInContainerSearchResult[]` / `Task<MaterialInContainerSearchResult[]>`: Array of materials in the container
+
+### GetSamplesInContainer / GetSamplesInContainerAsync
+
+Retrieves all samples within a specific container.
+
+**Signatures:**
+```csharp
+public SampleInContainerSearchResult[] GetSamplesInContainer(string containerId)
+public async Task<SampleInContainerSearchResult[]> GetSamplesInContainerAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `SampleInContainerSearchResult[]` / `Task<SampleInContainerSearchResult[]>`: Array of samples in the container
+
+### GetSamplesInContainers / GetSamplesInContainersAsync
+
+Retrieves samples from multiple containers in a single request.
+
+**Signatures:**
+```csharp
+public SampleInContainerSearchResult[] GetSamplesInContainers(string[] containerIds)
+public async Task<SampleInContainerSearchResult[]> GetSamplesInContainersAsync(string[] containerIds)
+```
+
+**Parameters:**
+- `containerIds` (string[]): Array of container identifiers
+
+**Returns:**
+- `SampleInContainerSearchResult[]` / `Task<SampleInContainerSearchResult[]>`: Array of samples from all specified containers
+
+## ⚖️ Weight & Volume Methods
+
+Methods for retrieving measurement data from containers.
+
+### GetNetVolume / GetNetVolumeAsync
+
+Retrieves the net volume measurement for a container.
+
+**Signatures:**
+```csharp
+public Volume GetNetVolume(string containerId)
+public async Task<Volume> GetNetVolumeAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `Volume` / `Task<Volume>`: Volume measurement object
+
+### GetNetWeightFromTransfers / GetNetWeightFromTransfersAsync
+
+Calculates net weight from transfer history.
+
+**Signatures:**
+```csharp
+public Weight GetNetWeightFromTransfers(string containerId)
+public async Task<Weight> GetNetWeightFromTransfersAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `Weight` / `Task<Weight>`: Calculated net weight from transfers
+
+### GetTareWeightMeasurement / GetTareWeightMeasurementAsync
+
+Retrieves the tare weight measurement for a container.
+
+**Signatures:**
+```csharp
+public Weight GetTareWeightMeasurement(string containerId)
+public async Task<Weight> GetTareWeightMeasurementAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `Weight` / `Task<Weight>`: Tare weight measurement object
+
+### GetGrossWeightMeasurement / GetGrossWeightMeasurementAsync
+
+Retrieves the gross weight measurement for a container.
+
+**Signatures:**
+```csharp
+public Weight GetGrossWeightMeasurement(string containerId)
+public async Task<Weight> GetGrossWeightMeasurementAsync(string containerId)
+```
+
+**Parameters:**
+- `containerId` (string): The identifier of the container
+
+**Returns:**
+- `Weight` / `Task<Weight>`: Gross weight measurement object
+
+## 📅 Event Methods
+
+Methods for retrieving system events and audit trails.
+
+### GetEvents / GetEventsAsync
+
+Retrieves events based on search parameters.
+
+**Signatures:**
+```csharp
+public EventMessage[] GetEvents(EventSearchParameters searchParameters, int limit, int offset)
+public async Task<EventMessage[]> GetEventsAsync(EventSearchParameters searchParameters, 
+    int limit, int offset)
+```
+
+**Parameters:**
+- `searchParameters` (EventSearchParameters): Criteria for event search
+- `limit` (int): Maximum number of events to return
+- `offset` (int): Number of events to skip
+
+**Returns:**
+- `EventMessage[]` / `Task<EventMessage[]>`: Array of event messages
+
+## 🔧 Utility Methods
+
+Additional utility methods for specialized operations.
+
+### GetWellIdentifier / GetWellIdentifierAsync
+
+Retrieves the well identifier for a specific well location on a plate.
+
+**Signatures:**
+```csharp
+public string GetWellIdentifier(string plateId, string alphaNumericWellLocation)
+public async Task<string> GetWellIdentifierAsync(string plateId, string alphaNumericWellLocation)
+```
+
+**Parameters:**
+- `plateId` (string): The identifier of the plate
+- `alphaNumericWellLocation` (string): The alphanumeric well location (e.g., "A1", "B12")
+
+**Returns:**
+- `string` / `Task<string>`: The well identifier
+
+### Dispose()
+
+Properly disposes of the QueryClient and its resources.
+
+**Signature:**
+```csharp
+public void Dispose()
+```
+
+**Note:** The QueryClient implements `IDisposable`. Use `using` statements or call `Dispose()` explicitly to ensure proper cleanup of HTTP resources.
+
+## ⚠️ Error Handling
+
+The QueryClient can throw various exceptions during operation. Proper error handling is essential for robust applications.
+
+### Common Exception Types:
+- **HttpRequestException** - Network connectivity issues
+- **TaskCanceledException** - Request timeouts
+- **Exception** - General API errors with HTTP status codes
+- **NotImplementedException** - For unimplemented methods
+
+### HTTP Status Code Handling:
+- **404 Not Found** - Returns `null` for GetIdentity methods
+- **204 No Content** - Returns `null` or empty array for search methods
+- **Other errors** - Throws `Exception` with status code and reason phrase
+
+### Recommended Error Handling Pattern:
+
+```csharp
+public async Task<Identity> SafeGetIdentityAsync(string identifier)
+{
+    try
+    {
+        using var client = new QueryClient(_baseUrl);
+        return await client.GetIdentityAsync(identifier);
+    }
+    catch (HttpRequestException httpEx)
+    {
+        _logger.LogError("Network error: {Error}", httpEx.Message);
+        return null;
+    }
+    catch (TaskCanceledException timeoutEx)
+    {
+        _logger.LogError("Request timeout: {Error}", timeoutEx.Message);
+        return null;
+    }
+    catch (Exception ex) when (ex.Message.Contains("404"))
+    {
+        _logger.LogInformation("Identity not found: {Identifier}", identifier);
+        return null;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError("API error: {Error}", ex.Message);
+        throw;
+    }
+}
+```
+
+## 💡 Examples
+
+### Example 1: Basic Identity Operations
+
+```csharp
+using Biosero.DataServices.RestClient;
+using Biosero.DataModels.Resources;
+
+public class DataServiceExample
+{
+    private readonly string _baseUrl = "http://localhost:8105/api/v2.0/";
+    
+    public async Task ExploreIdentitiesAsync()
+    {
+        using var client = new QueryClient(_baseUrl);
+        
+        // Get identity by ID
+        var identity = await client.GetIdentityAsync("DEVICE-001");
+        if (identity != null)
+        {
+            Console.WriteLine($"Found: {identity.Name} (Type: {identity.GetType().Name})");
+        }
+        
+        // Get identity by name
+        var namedIdentity = await client.GetIdentityByNameAsync("MyDevice");
+        
+        // Search with pattern matching
+        var matches = await client.GetIdentitiesByPatternMatchAsync(
+            idPattern: "DEVICE-*",
+            namePattern: "*",
+            typePattern: "Device", 
+            descriptionPattern: "*",
+            idAndNameCriteria: MatchCriteria.StartsWith,
+            limit: 10,
+            offset: 0
+        );
+        
+        Console.WriteLine($"Found {matches.Length} matching devices");
+    }
+}
+```
+
+### Example 2: Container and Material Operations
+
+```csharp
+public async Task AnalyzeContainerAsync(string containerId)
+{
+    using var client = new QueryClient(_baseUrl);
+    
+    // Get container location
+    var location = await client.GetLocationAsync(containerId);
+    var locationPath = await client.GetLocationPathAsync(containerId);
+    
+    Console.WriteLine($"Container location: {locationPath}");
+    
+    // Get contents
+    var materials = await client.GetMaterialsInContainerAsync(containerId);
+    var samples = await client.GetSamplesInContainerAsync(containerId);
+    
+    Console.WriteLine($"Materials: {materials.Length}, Samples: {samples.Length}");
+    
+    // Get measurements
+    var netVolume = await client.GetNetVolumeAsync(containerId);
+    var grossWeight = await client.GetGrossWeightMeasurementAsync(containerId);
+    var tareWeight = await client.GetTareWeightMeasurementAsync(containerId);
+    
+    Console.WriteLine($"Volume: {netVolume}, Gross: {grossWeight}, Tare: {tareWeight}");
+}
+```
+
+### Example 3: Search and Event Operations
+
+```csharp
+public async Task SearchAndAnalyzeAsync()
+{
+    using var client = new QueryClient(_baseUrl);
+    
+    // Search for materials
+    var materialSearch = new MaterialSearchParameters
+    {
+        // Configure search parameters
+    };
+    var materials = await client.FindMaterialAsync(materialSearch, limit: 50, offset: 0);
+    
+    // Search for samples
+    var sampleSearch = new SampleSearchParameters
+    {
+        // Configure search parameters  
+    };
+    var samples = await client.FindSampleAsync(sampleSearch, limit: 50, offset: 0);
+    
+    // Get recent events
+    var eventSearch = new EventSearchParameters
+    {
+        // Configure event search
+    };
+    var events = await client.GetEventsAsync(eventSearch, limit: 100, offset: 0);
+    
+    Console.WriteLine($"Found {materials.Length} materials, {samples.Length} samples, {events.Length} events");
+}
+```
+
+### Example 4: Batch Operations with Error Handling
+
+```csharp
+public async Task ProcessMultipleContainersAsync(string[] containerIds)
+{
+    using var client = new QueryClient(_baseUrl);
+    
+    // Get samples from multiple containers in one call
+    var allSamples = await client.GetSamplesInContainersAsync(containerIds);
+    
+    // Process each container individually with error handling
+    var tasks = containerIds.Select(async containerId =>
+    {
+        try
+        {
+            var location = await client.GetLocationAsync(containerId);
+            var materials = await client.GetMaterialsInContainerAsync(containerId);
+            var volume = await client.GetNetVolumeAsync(containerId);
+            
+            return new ContainerInfo
+            {
+                Id = containerId,
+                Location = location,
+                MaterialCount = materials.Length,
+                Volume = volume
+            };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing container {containerId}: {ex.Message}");
+            return null;
+        }
+    });
+    
+    var results = await Task.WhenAll(tasks);
+    var successfulResults = results.Where(r => r != null).ToArray();
+    
+    Console.WriteLine($"Successfully processed {successfulResults.Length}/{containerIds.Length} containers");
+}
+
+public class ContainerInfo
+{
+    public string Id { get; set; }
+    public Location Location { get; set; }
+    public int MaterialCount { get; set; }
+    public Volume Volume { get; set; }
+}
+```
+
+### Example 5: Well Plate Operations
+
+```csharp
+public async Task ProcessWellPlateAsync(string plateId)
+{
+    using var client = new QueryClient(_baseUrl);
+    
+    // Get plate identity
+    var plate = await client.GetIdentityAsync(plateId);
+    Console.WriteLine($"Processing plate: {plate.Name}");
+    
+    // Process specific wells
+    var wellLocations = new[] { "A1", "A2", "B1", "B2" };
+    
+    foreach (var wellLocation in wellLocations)
+    {
+        try
+        {
+            var wellId = await client.GetWellIdentifierAsync(plateId, wellLocation);
+            var wellIdentity = await client.GetIdentityAsync(wellId);
+            var samples = await client.GetSamplesInContainerAsync(wellId);
+            
+            Console.WriteLine($"Well {wellLocation} ({wellId}): {samples.Length} samples");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing well {wellLocation}: {ex.Message}");
+        }
+    }
+}
+```
+
+## ✅ Best Practices
+
+### 1. **Always Use Using Statements or Proper Disposal**
+```csharp
+// ✅ Good - Automatic disposal
+using var client = new QueryClient(_baseUrl);
+var result = await client.GetIdentityAsync("DEVICE-001");
+
+// ✅ Alternative - Manual disposal
+var client = new QueryClient(_baseUrl);
+try
+{
+    var result = await client.GetIdentityAsync("DEVICE-001");
+    return result;
+}
+finally
+{
+    client.Dispose();
+}
+```
+
+### 2. **Prefer Async Methods for Better Performance**
+```csharp
+// ✅ Good - Non-blocking, scalable
+var identity = await client.GetIdentityAsync("DEVICE-001");
+var materials = await client.GetMaterialsInContainerAsync("CONTAINER-001");
+
+// ❌ Avoid - Blocking threads
+var identity = client.GetIdentity("DEVICE-001");
+var materials = client.GetMaterialsInContainer("CONTAINER-001");
+```
+
+### 3. **Handle Null Returns Appropriately**
+```csharp
+// ✅ Good - Check for null returns
+var identity = await client.GetIdentityAsync(itemId);
+if (identity != null)
+{
+    ProcessIdentity(identity);
+}
+else
+{
+    _logger.LogInformation("Identity not found: {ItemId}", itemId);
+}
+
+// ✅ Good - Handle search results that may be null
+var materials = await client.FindMaterialAsync(searchParams, 50, 0);
+var materialCount = materials?.Length ?? 0;
+```
+
+### 4. **Use Batch Operations When Available**
+```csharp
+// ✅ Good - Single call for multiple containers
+var samples = await client.GetSamplesInContainersAsync(containerIds);
+
+// ❌ Less efficient - Multiple individual calls
+var allSamples = new List<SampleInContainerSearchResult>();
+foreach (var containerId in containerIds)
+{
+    var samples = await client.GetSamplesInContainerAsync(containerId);
+    allSamples.AddRange(samples);
+}
+```
+
+### 5. **Implement Proper Pagination**
+```csharp
+// ✅ Good - Paginated search with reasonable limits
+public async Task<List<Identity>> GetAllDevicesAsync()
+{
+    var allDevices = new List<Identity>();
+    const int pageSize = 100;
+    int offset = 0;
+    
+    Identity[] page;
+    do
+    {
+        page = await client.GetIdentitiesByPatternMatchAsync(
+            "DEVICE-*", "*", "Device", "*", 
+            MatchCriteria.StartsWith, pageSize, offset);
+        
+        allDevices.AddRange(page);
+        offset += pageSize;
+    } 
+    while (page.Length == pageSize);
+    
+    return allDevices;
+}
+```
+
+### 6. **Use Constructor Overloads Appropriately**
+```csharp
+// ✅ Good - For simple scenarios
+var client = new QueryClient("http://localhost:8105/api/v2.0/");
+
+// ✅ Good - For dependency injection scenarios
+public class DataService
+{
+    private readonly QueryClient _queryClient;
+    
+    public DataService(HttpClient httpClient)
+    {
+        _queryClient = new QueryClient(httpClient);
+    }
+}
+
+// ✅ Good - For dynamic configuration
+var client = new QueryClient(() => _config.GetConnectionString("DataServices"));
+```
+
+### 7. **Handle NotImplementedException Methods**
+```csharp
+// ✅ Good - Check before using unimplemented methods
+try 
+{
+    var results = await client.GetIdentitiesByPropertyValuePatternMatchAsync(
+        searchParams, criteria, typePattern, 50, 0);
+}
+catch (NotImplementedException)
+{
+    _logger.LogWarning("Property value pattern matching not implemented, using alternative approach");
+    // Use alternative search method
+    var results = await client.GetIdentitiesByPatternMatchAsync(
+        idPattern, namePattern, typePattern, "*", criteria, 50, 0);
+}
+```
+
+### 8. **Validate Inputs Before API Calls**
+```csharp
+// ✅ Good - Input validation
+public async Task<Identity> SafeGetIdentityAsync(string itemId)
+{
+    if (string.IsNullOrWhiteSpace(itemId))
+    {
+        throw new ArgumentException("Item ID cannot be null or empty", nameof(itemId));
+    }
+    
+    using var client = new QueryClient(_baseUrl);
+    return await client.GetIdentityAsync(itemId);
+}
+```
+
+### 9. **Use Structured Logging**
+```csharp
+// ✅ Good - Structured logging with context
+public async Task<Identity[]> SearchWithLoggingAsync(string pattern)
+{
+    using var client = new QueryClient(_baseUrl);
+    
+    _logger.LogInformation("Starting identity search with pattern: {Pattern}", pattern);
+    
+    try
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var results = await client.GetIdentitiesByPatternMatchAsync(
+            pattern, "*", "*", "*", MatchCriteria.Contains, 100, 0);
+        
+        _logger.LogInformation("Search completed in {ElapsedMs}ms, found {Count} results", 
+            stopwatch.ElapsedMilliseconds, results.Length);
+            
+        return results;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Search failed for pattern: {Pattern}", pattern);
+        throw;
+    }
+}
+```
+
+### 10. **Consider Caching for Frequently Accessed Data**
+```csharp
+// ✅ Good - Simple caching for stable data
+private readonly MemoryCache _identityCache = new MemoryCache(new MemoryCacheOptions());
+
+public async Task<Identity> GetCachedIdentityAsync(string itemId)
+{
+    if (_identityCache.TryGetValue(itemId, out Identity cached))
+    {
+        return cached;
+    }
+    
+    using var client = new QueryClient(_baseUrl);
+    var identity = await client.GetIdentityAsync(itemId);
+    
+    if (identity != null)
+    {
+        _identityCache.Set(itemId, identity, TimeSpan.FromMinutes(5));
+    }
+    
+    return identity;
+}
+```
+
+## 🔗 Related Documentation
+
+- **Biosero.DataModels** - Data model documentation (Coming Soon)
+- **Configuration Guide** - Setup and configuration (Coming Soon)
+- **TestApp Examples** - Real-world usage examples (Coming Soon)
+
+---
+
+*This documentation is based on the QueryClient class from Biosero.DataServices.RestClient. For the most up-to-date API reference, use F12 in VS Code to view the decompiled source.*
+
+*Last updated: September 27, 2025*
