@@ -1,0 +1,639 @@
+# Order Scheduler
+
+The `Order Scheduler` is the main interface for managing workflow execution and order scheduling in the Biosero Data Services system. This document provides comprehensive documentation for workflow orchestration and order lifecycle management.
+
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Constructor](#️-constructor)
+- [🚀 Workflow Initialization Methods](#-workflow-initialization-methods)
+- [📝 Order Scheduling Methods](#-order-scheduling-methods)
+- [⏳ Execution Control Methods](#-execution-control-methods)
+- [📊 Status Monitoring Methods](#-status-monitoring-methods)
+- [🔄 Workflow Management Methods](#-workflow-management-methods)
+- [🛠️ Utility Methods](#️-utility-methods)
+- [📦 Data Models](#-data-models)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `OrderScheduler` class provides comprehensive workflow orchestration capabilities for laboratory automation. It handles master workflow creation, order scheduling, execution control, and status monitoring.
+
+**Module:** `biosero.datamodels.restclients`  
+**Interfaces:** Async Context Manager Protocol (`__aenter__`, `__aexit__`)
+
+### Key Features
+- Initiate and manage master workflows
+- Schedule individual orders within workflows
+- Control execution timing and dependencies
+- Monitor order status and progress
+- Handle async operations with proper resource cleanup
+- Enhanced logging and debugging capabilities
+
+## 🏗️ Constructor
+
+### OrderScheduler(base_url, demo=False)
+
+Creates a new instance of the OrderScheduler with the specified configuration.
+
+**Parameters:**
+- `base_url` (str): The base URL of the Data Services endpoint (e.g., "http://10.0.0.234:8105")
+- `demo` (bool, optional): Enable demo mode for enhanced visual logging. Demo mode prevents certain async operations. Default is False.
+
+**Example:**
+```python
+from biosero.datamodels.restclients import OrderScheduler
+
+# Standard mode
+scheduler = OrderScheduler("http://10.0.0.234:8105")
+
+# Demo mode with enhanced logging
+scheduler = OrderScheduler("http://10.0.0.234:8105", demo=True)
+```
+
+### Async Context Management
+
+The `OrderScheduler` supports Python's async context manager protocol for automatic resource cleanup:
+
+```python
+async with OrderScheduler("http://10.0.0.234:8105") as scheduler:
+    workflow_order = await scheduler.initiate_workflow("My Workflow")
+```
+
+## 🚀 Workflow Initialization Methods
+
+Methods for creating and initializing master workflows that act as parent containers for related orders.
+
+### initiate_workflow(workflow_template_name, wait=False)
+
+Initiates a Master Order that acts as a parent order for all other orders in the workflow.
+
+**Parameters:**
+- `workflow_template_name` (str): Name of the workflow template to use
+- `wait` (bool, optional): Whether to wait for workflow initialization. Default is False.
+
+**Returns:**
+- `WorkflowOrder`: The initiated workflow order object
+
+**Example:**
+```python
+scheduler = OrderScheduler("http://10.0.0.234:8105", True)
+workflow_order = await scheduler.initiate_workflow(
+    workflow_template_name="Cell Culture Workflow", 
+    wait=False
+)
+workflow_id = workflow_order.identifier
+print(f"Initiated workflow: {workflow_id}")
+```
+
+**Note:** This is an optional step. Individual orders can be scheduled without a master workflow.
+
+## 📝 Order Scheduling Methods
+
+Methods for scheduling individual orders within workflows or as standalone operations.
+
+### schedule_order(order, wait=True)
+
+Schedules an individual order within a workflow.
+
+**Parameters:**
+- `order` (Order): The order object to schedule
+- `wait` (bool, optional): Whether to wait for order completion. Default is True.
+
+**Returns:**
+- `Order`: The scheduled order object with updated status and execution details
+
+**Example:**
+```python
+from biosero.datamodels.ordering import Order
+from biosero.datamodels.parameters import ParameterCollection, Parameter
+
+# Create order with parameters
+order = Order(
+    template_name="Sample Processing",
+    parent_identifier=workflow_id,
+    input_parameters=ParameterCollection([
+        Parameter(name="SampleId", value="SAMPLE-001"),
+        Parameter(name="Volume", value="100")
+    ])
+)
+
+# Schedule the order
+completed_order = await scheduler.schedule_order(order, wait=True)
+print(f"Order completed: {completed_order.status}")
+```
+
+### schedule_order_with_dependencies(order, dependencies, wait=True)
+
+Schedules an order with specific dependencies on other orders.
+
+**Parameters:**
+- `order` (Order): The order object to schedule
+- `dependencies` (List[str]): List of order IDs that must complete before this order
+- `wait` (bool, optional): Whether to wait for order completion. Default is True.
+
+**Returns:**
+- `Order`: The scheduled order object
+
+**Example:**
+```python
+# Schedule order that depends on previous orders
+dependent_order = Order(
+    template_name="Analysis",
+    parent_identifier=workflow_id,
+    run_after_identifier="previous-order-123"
+)
+
+completed_order = await scheduler.schedule_order_with_dependencies(
+    dependent_order, 
+    dependencies=["order-1", "order-2"],
+    wait=True
+)
+```
+
+## ⏳ Execution Control Methods
+
+Methods for controlling order execution timing and flow.
+
+### wait_for_order_completion(order_id, timeout=None)
+
+Waits for a specific order to complete execution.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order to wait for
+- `timeout` (float, optional): Maximum time to wait in seconds. Default is None (no timeout).
+
+**Returns:**
+- `Order`: The completed order object with final status
+
+**Example:**
+```python
+# Wait for order completion with timeout
+try:
+    completed_order = await scheduler.wait_for_order_completion(
+        "order-123", 
+        timeout=300  # 5 minutes
+    )
+    print(f"Order completed with status: {completed_order.status}")
+except asyncio.TimeoutError:
+    print("Order did not complete within timeout")
+```
+
+### cancel_order(order_id)
+
+Cancels a scheduled or executing order.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order to cancel
+
+**Returns:**
+- `bool`: True if cancellation was successful
+
+**Example:**
+```python
+success = await scheduler.cancel_order("order-123")
+if success:
+    print("Order cancelled successfully")
+```
+
+### complete_workflow(workflow_order)
+
+Marks a workflow as completed.
+
+**Parameters:**
+- `workflow_order` (WorkflowOrder): The workflow order to complete
+
+**Example:**
+```python
+scheduler.complete_workflow(workflow_order)
+```
+
+## 📊 Status Monitoring Methods
+
+Methods for monitoring order and workflow status throughout execution.
+
+### get_order_status(order_id)
+
+Retrieves the current status of a specific order.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order
+
+**Returns:**
+- `OrderStatus`: Current status of the order
+
+**Example:**
+```python
+from biosero.datamodels.ordering import OrderStatus
+
+status = await scheduler.get_order_status("order-123")
+if status == OrderStatus.COMPLETE:
+    print("Order has completed")
+elif status == OrderStatus.RUNNING:
+    print("Order is currently executing")
+```
+
+### get_workflow_status(workflow_id)
+
+Retrieves the status of an entire workflow and its child orders.
+
+**Parameters:**
+- `workflow_id` (str): The unique identifier of the workflow
+
+**Returns:**
+- `WorkflowStatus`: Status object containing workflow and child order information
+
+**Example:**
+```python
+workflow_status = await scheduler.get_workflow_status(workflow_id)
+print(f"Workflow status: {workflow_status.overall_status}")
+print(f"Completed orders: {len(workflow_status.completed_orders)}")
+print(f"Running orders: {len(workflow_status.running_orders)}")
+```
+
+## 🔄 Workflow Management Methods
+
+Methods for managing workflow lifecycle and coordination.
+
+### pause_workflow(workflow_id)
+
+Pauses execution of a workflow and its pending orders.
+
+**Parameters:**
+- `workflow_id` (str): The unique identifier of the workflow to pause
+
+**Returns:**
+- `bool`: True if workflow was successfully paused
+
+**Example:**
+```python
+success = await scheduler.pause_workflow(workflow_id)
+if success:
+    print("Workflow paused successfully")
+```
+
+### resume_workflow(workflow_id)
+
+Resumes execution of a paused workflow.
+
+**Parameters:**
+- `workflow_id` (str): The unique identifier of the workflow to resume
+
+**Returns:**
+- `bool`: True if workflow was successfully resumed
+
+**Example:**
+```python
+success = await scheduler.resume_workflow(workflow_id)
+if success:
+    print("Workflow resumed successfully")
+```
+
+### abort_workflow(workflow_id)
+
+Aborts a workflow and cancels all pending orders.
+
+**Parameters:**
+- `workflow_id` (str): The unique identifier of the workflow to abort
+
+**Returns:**
+- `bool`: True if workflow was successfully aborted
+
+**Example:**
+```python
+success = await scheduler.abort_workflow(workflow_id)
+if success:
+    print("Workflow aborted successfully")
+```
+
+## 🛠️ Utility Methods
+
+Helper methods for configuration and resource management.
+
+### close()
+
+Properly closes the scheduler and releases resources.
+
+**Example:**
+```python
+await scheduler.close()
+```
+
+### set_logging_level(level)
+
+Sets the logging level for enhanced debugging.
+
+**Parameters:**
+- `level` (str): Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR')
+
+**Example:**
+```python
+scheduler.set_logging_level('DEBUG')
+```
+
+## 📦 Data Models
+
+### WorkflowOrder
+
+Represents a master workflow order that contains child orders.
+
+**Key Fields:**
+- `identifier` (str): Unique workflow identifier
+- `template_name` (str): Name of the workflow template
+- `status` (OrderStatus): Current workflow status
+- `child_orders` (List[Order]): List of child orders
+- `creation_time` (datetime): When the workflow was created
+
+### Order
+
+Represents an individual order within a workflow or standalone operation.
+
+**Core Identification:**
+- `identifier` (Optional[str]): Unique identifier for the order
+- `parent_identifier` (Optional[str]): ID of the parent workflow or order
+- `source_identifier` (Optional[str]): ID of the source that created this order
+- `template_name` (Optional[str]): Name of the order template to execute
+
+**Scheduling and Execution:**
+- `scheduled_start_time` (Optional[datetime]): When the order is scheduled to start
+- `actual_start_time` (Optional[datetime]): When the order actually started execution
+- `actual_end_time` (Optional[datetime]): When the order completed execution
+- `estimated_duration` (Optional[str]): Expected duration for order completion
+- `scheduling_strategy` (Optional[SchedulingStrategy]): Strategy for scheduling this order
+- `run_after_identifier` (Optional[str]): ID of order that must complete before this one
+
+**Status and State:**
+- `status` (Optional[OrderStatus]): Current status of the order
+- `status_details` (Optional[str]): Additional details about the current status
+- `state` (Optional[str]): Internal state information
+- `validation_errors` (Optional[List[str]]): List of validation errors if any
+
+**Module Assignment:**
+- `assigned_to` (Optional[str]): Module or resource assigned to execute this order
+- `restrict_to_module_ids` (Optional[str]): Comma-separated list of allowed module IDs
+- `module_restriction_strategy` (Optional[ModuleRestrictionStrategy]): How module restrictions are enforced
+
+**Parameters and Data:**
+- `input_parameters` (Optional[List[Dict[str, Any]]]): Input parameters for the order
+- `output_parameters` (Optional[List[Dict[str, Any]]]): Output parameters from execution
+- `log` (Optional[str]): Execution log information
+
+**Metadata:**
+- `creation_time` (Optional[datetime]): When the order was created
+- `created_by` (Optional[str]): User or system that created the order
+- `notes` (Optional[str]): Additional notes or comments
+- `priority` (Optional[OrderPriority]): Priority level (Elevated, Standard, Unknown)
+
+**Key Methods:**
+
+#### get_input_parameter_value(key)
+
+Retrieves the value of an input parameter by name.
+
+**Parameters:**
+- `key` (str): Name of the input parameter to retrieve
+
+**Returns:**
+- `Optional[Any]`: The parameter value, or None if not found
+
+**Example:**
+```python
+sample_id = order.get_input_parameter_value("SampleId")
+volume = order.get_input_parameter_value("Volume")
+```
+
+#### get_output_parameter_value(key)
+
+Retrieves the value of an output parameter by name.
+
+**Parameters:**
+- `key` (str): Name of the output parameter to retrieve
+
+**Returns:**
+- `Optional[Any]`: The parameter value, or None if not found
+
+**Example:**
+```python
+success = order.get_output_parameter_value("Success")
+result_data = order.get_output_parameter_value("ResultData")
+```
+
+## ⚠️ Error Handling
+
+The Order Scheduler implements comprehensive error handling for async operations:
+
+### Common Exceptions
+- `asyncio.TimeoutError`: Raised when operations exceed specified timeouts
+- `ConnectionError`: Raised when unable to connect to Data Services
+- `ValidationError`: Raised when order parameters are invalid
+- `WorkflowError`: Raised when workflow operations fail
+
+### Example Error Handling
+```python
+try:
+    workflow_order = await scheduler.initiate_workflow("My Workflow")
+    order = await scheduler.schedule_order(my_order, wait=True)
+    
+    # Check for execution success
+    success = order.get_output_parameter_value("Success")
+    if not success:
+        error_msg = order.get_output_parameter_value("Error Message")
+        raise Exception(f"Order failed: {error_msg}")
+        
+except asyncio.TimeoutError:
+    print("Operation timed out")
+except ConnectionError as e:
+    print(f"Connection error: {e}")
+except Exception as e:
+    print(f"Workflow error: {e}")
+finally:
+    await scheduler.close()
+```
+
+## 📖 Examples
+
+### Complete Workflow Example
+```python
+import asyncio
+from biosero.datamodels.restclients import OrderScheduler
+from biosero.datamodels.ordering import Order
+from biosero.datamodels.parameters import ParameterCollection, Parameter
+
+async def run_sample_workflow():
+    async with OrderScheduler("http://10.0.0.234:8105", demo=True) as scheduler:
+        try:
+            # Initiate master workflow
+            workflow_order = await scheduler.initiate_workflow(
+                "Cell Culture Workflow", 
+                wait=False
+            )
+            workflow_id = workflow_order.identifier
+            print(f"Started workflow: {workflow_id}")
+            
+            # Schedule first order
+            prep_order = Order(
+                template_name="Sample Preparation",
+                parent_identifier=workflow_id,
+                input_parameters=ParameterCollection([
+                    Parameter(name="SampleId", value="SAMPLE-001"),
+                    Parameter(name="Volume", value="100"),
+                    Parameter(name="Temperature", value="37")
+                ])
+            )
+            
+            completed_prep = await scheduler.schedule_order(prep_order, wait=True)
+            print(f"Preparation completed: {completed_prep.status}")
+            
+            # Schedule dependent analysis order
+            analysis_order = Order(
+                template_name="Sample Analysis",
+                parent_identifier=workflow_id,
+                run_after_identifier=completed_prep.identifier,
+                input_parameters=ParameterCollection([
+                    Parameter(name="InputSample", value=completed_prep.identifier)
+                ])
+            )
+            
+            completed_analysis = await scheduler.schedule_order(analysis_order, wait=True)
+            print(f"Analysis completed: {completed_analysis.status}")
+            
+            # Check results
+            success = completed_analysis.get_output_parameter_value("Success")
+            if success:
+                result = completed_analysis.get_output_parameter_value("Result")
+                print(f"Analysis result: {result}")
+            else:
+                error = completed_analysis.get_output_parameter_value("Error")
+                print(f"Analysis failed: {error}")
+                
+        except Exception as e:
+            print(f"Workflow failed: {e}")
+
+# Run the workflow
+asyncio.run(run_sample_workflow())
+```
+
+### Parallel Order Execution
+```python
+async def run_parallel_orders():
+    async with OrderScheduler("http://10.0.0.234:8105") as scheduler:
+        # Create multiple orders
+        orders = []
+        for i in range(3):
+            order = Order(
+                template_name="Parallel Processing",
+                input_parameters=ParameterCollection([
+                    Parameter(name="BatchId", value=f"BATCH-{i:03d}")
+                ])
+            )
+            orders.append(order)
+        
+        # Schedule all orders in parallel (don't wait)
+        scheduled_orders = []
+        for order in orders:
+            scheduled = await scheduler.schedule_order(order, wait=False)
+            scheduled_orders.append(scheduled)
+        
+        # Wait for all to complete
+        completed_orders = []
+        for order in scheduled_orders:
+            completed = await scheduler.wait_for_order_completion(
+                order.identifier, 
+                timeout=600
+            )
+            completed_orders.append(completed)
+        
+        print(f"All {len(completed_orders)} orders completed")
+```
+
+## 🎯 Best Practices
+
+### 1. Use Async Context Managers
+Always use the scheduler within an async context manager:
+
+```python
+async with OrderScheduler(url, debug=True) as scheduler:
+    # Your workflow operations here
+    pass
+```
+
+### 2. Resource Management
+Ensure proper cleanup even with exceptions:
+
+```python
+scheduler = OrderScheduler(url, debug=True)
+try:
+    # ... workflow operations
+finally:
+    await scheduler.close()
+```
+
+### 3. Parameter Handling
+Convert all parameter values to strings and use appropriate types:
+
+```python
+params = ParameterCollection([
+    Parameter(name="Numeric Value", value=str(123.45), value_type=ParameterValueType.STRING),
+    Parameter(name="JSON Data", value=json.dumps(data), value_type=ParameterValueType.STRING)
+])
+```
+
+### 4. Error Checking
+Always check success parameters before proceeding:
+
+```python
+success = order.get_output_parameter_value("Success")
+if not success:
+    error_msg = order.get_output_parameter_value("Error Message")
+    raise Exception(f"Order failed: {error_msg}")
+```
+
+### 5. Configuration Management
+Use configuration files for Data Services URL:
+
+```ini
+[DATA SERVICES]
+url = http://10.0.0.234:8105
+```
+
+```python
+import configparser
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+url = config['DATA SERVICES']['url']
+
+scheduler = OrderScheduler(url)
+```
+
+### 6. Logging Configuration
+Set up rich logging for enhanced debugging:
+
+```python
+import logging
+from rich.logging import RichHandler
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)]
+)
+```
+
+## 🔗 Related Data Models
+
+The Order Scheduler works with several data models from the `biosero.datamodels` package:
+
+- **Order**: Individual order objects with parameters and execution details
+- **WorkflowOrder**: Master workflow containers for related orders
+- **OrderStatus**: Enum representing order lifecycle states
+- **SchedulingStrategy**: Strategies for order scheduling and execution
+- **ParameterCollection**: Collections of order parameters with validation
+- **ModuleRestrictionStrategy**: Strategies for module assignment and restrictions
+
+## 🧵 Thread Safety
+
+The `OrderScheduler` is designed for async operations and should be used within async contexts. While individual operations are thread-safe, it's recommended to use separate scheduler instances for different async tasks when performing concurrent operations.

@@ -1,18 +1,59 @@
 # Query Client
 
-The `QueryClient` class provides a comprehensive interface for querying data from the Biosero Data Services API. It handles HTTP communication, response parsing, and data model conversion for various resource types.
+The `QueryClient` is the primary interface for interacting with Biosero Data Services from Python applications. This document provides comprehensive documentation for all available methods and usage patterns based on the actual implementation.
 
-## Overview
+## 📋 Table of Contents
 
-The Query Client is designed to interact with the Biosero Data Services API, providing methods to:
+- [🔍 Overview](#-overview)
+- [🏗️ Constructor](#️-constructor)
+- [🆔 Identity Methods](#-identity-methods)
+- [📍 Location Methods](#-location-methods)
+- [📦 Container Methods](#-container-methods)
+- [📏 Volume Methods](#-volume-methods)
+- [📅 Event Methods](#-event-methods)
+- [🔄 Workflow Methods](#-workflow-methods)
+- [🛠️ Utility Methods](#️-utility-methods)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `QueryClient` class provides comprehensive methods to query and retrieve data from Biosero Data Services. It handles HTTP communication, response parsing, and data model conversion for various resource types.
+
+**Module:** `biosero.datamodels.clients`  
+**Interfaces:** Context Manager Protocol (`__enter__`, `__exit__`)
+
+### Key Features
 - Retrieve and manage identity information
 - Query location and container data
 - Access event history
 - Retrieve workflow process information
 - Search materials and samples
+- Automatic resource cleanup via context manager
 
+## 🏗️ Constructor
 
-## Context Management
+### QueryClient(url)
+
+Creates a new instance of the QueryClient with the specified base URL.
+
+**Parameters:**
+- `url` (str or callable): The base URL for the API. If callable, it will be invoked to get the URL.
+
+**Example:**
+```python
+# Direct URL
+client = QueryClient("https://api.example.com")
+
+# Callable URL provider
+def get_api_url():
+    return "https://api.example.com"
+
+client = QueryClient(get_api_url)
+```
+
+### Context Management
 
 The `QueryClient` supports Python's context manager protocol for automatic resource cleanup:
 
@@ -21,9 +62,11 @@ with QueryClient("https://api.example.com") as client:
     identity = client.get_identity("item-123")
 ```
 
-## Identity Management
+## 🆔 Identity Methods
 
-### `get_identity(item_id)`
+Identity operations allow you to retrieve and search for devices, samples, and other resources in the system.
+
+### get_identity(item_id)
 
 Retrieves the identity of an item by its identifier.
 
@@ -44,7 +87,7 @@ if identity:
 
 **API Endpoint:** `GET /api/v2.0/QueryService/Identity?id={item_id}`
 
-### `get_child_identities(parent_type_id, limit, offset)`
+### get_child_identities(parent_type_id, limit, offset)
 
 Retrieves child identities of a parent item with pagination support.
 
@@ -65,7 +108,7 @@ for child in children:
 
 **API Endpoint:** `GET /api/v2.0/QueryService/ChildIdentities?parentTypeId={parent_type_id}&limit={limit}&offset={offset}`
 
-### `remove_identity(item_id)`
+### remove_identity(item_id)
 
 Removes an identity from the system.
 
@@ -84,27 +127,11 @@ if success:
 
 **API Endpoint:** `DELETE /api/v3.0/identities/{item_id}`
 
-### `get_parameter_value_from_identity(identity, parameter_name)`
+## 📍 Location Methods
 
-Helper method to retrieve a specific parameter value from an Identity object.
+Methods for retrieving location information and managing spatial relationships.
 
-**Parameters:**
-- `identity` (Identity): The Identity object containing parameters
-- `parameter_name` (str): Name of the parameter to retrieve
-
-**Returns:**
-- `Any`: The parameter value if found, otherwise `None`
-
-**Example:**
-```python
-identity = client.get_identity("sample-123")
-volume = client.get_parameter_value_from_identity(identity, "Volume")
-print(f"Sample volume: {volume}")
-```
-
-## Location and Container Operations
-
-### `get_location(item_id)`
+### get_location(item_id)
 
 Retrieves the location information for a specific item.
 
@@ -122,7 +149,7 @@ print(f"Location: {location}")
 
 **API Endpoint:** `GET /api/v2.0/QueryService/Location?itemId={item_id}`
 
-### `get_items_at_location(location_id, limit, offset)`
+### get_items_at_location(location_id, limit, offset)
 
 Retrieves all items present at a specific location.
 
@@ -143,7 +170,11 @@ for item in items:
 
 **API Endpoint:** `GET /api/v2.0/QueryService/ItemsAtLocation?locationId={location_id}&limit={limit}&offset={offset}`
 
-### `get_materials_in_container(container_id)`
+## 📦 Container Methods
+
+Methods for working with containers and their contents.
+
+### get_materials_in_container(container_id)
 
 Retrieves all materials present in a specific container.
 
@@ -162,7 +193,11 @@ for material in materials:
 
 **API Endpoint:** `GET /api/v2.0/QueryService/MaterialsInContainer?containerId={container_id}`
 
-### `get_net_volume(container_id)`
+## 📏 Volume Methods
+
+Methods for retrieving volume measurements and calculations.
+
+### get_net_volume(container_id)
 
 Retrieves the net volume measurement for a container.
 
@@ -180,9 +215,11 @@ print(f"Net volume: {volume.value} {volume.unit}")
 
 **API Endpoint:** `GET /api/v2.0/QueryService/NetVolume?containerId={container_id}`
 
-## Event Management
+## 📅 Event Methods
 
-### `get_events(search_parameters, limit, offset)`
+Methods for retrieving and managing system events.
+
+### get_events(search_parameters, limit, offset)
 
 Retrieves events based on search criteria with pagination support.
 
@@ -211,11 +248,11 @@ if events:
 
 **API Endpoint:** `POST /api/v2.0/QueryService/Events?limit={limit}&offset={offset}`
 
-**Note:** This method automatically converts camelCase response fields to PascalCase to match the `EventMessage` data model expectations.
+## 🔄 Workflow Methods
 
-## Workflow Management
+Methods for retrieving workflow and process information.
 
-### `get_workflow_process(workflow_process_id)`
+### get_workflow_process(workflow_process_id)
 
 Retrieves a workflow process by its identifier.
 
@@ -234,15 +271,171 @@ print(f"Status: {workflow.status}")
 
 **API Endpoint:** `GET /api/v3.0/orders/{workflow_process_id}/workflow-processes`
 
-## Error Handling
+## 🛠️ Utility Methods
+
+Helper methods for data extraction and manipulation.
+
+### get_parameter_value_from_identity(identity, parameter_name)
+
+Helper method to retrieve a specific parameter value from an Identity object.
+
+**Parameters:**
+- `identity` (Identity): The Identity object containing parameters
+- `parameter_name` (str): Name of the parameter to retrieve
+
+**Returns:**
+- `Any`: The parameter value if found, otherwise `None`
+
+**Example:**
+```python
+identity = client.get_identity("sample-123")
+volume = client.get_parameter_value_from_identity(identity, "Volume")
+concentration = client.get_parameter_value_from_identity(identity, "Concentration")
+print(f"Sample volume: {volume}, concentration: {concentration}")
+```
+
+## ⚠️ Error Handling
 
 The Query Client implements several error handling strategies:
 
-1. **HTTP Status Codes**: Methods raise exceptions for HTTP errors using `response.raise_for_status()`
-2. **404 Handling**: `get_identity()` returns `None` for 404 responses instead of raising an exception
-3. **Empty Results**: `get_events()` returns `None` for 204 (No Content) responses
+### HTTP Status Codes
+Methods raise exceptions for HTTP errors using `response.raise_for_status()`
 
-## Data Models
+### Specific Error Handling
+- **404 Handling**: `get_identity()` returns `None` for 404 responses instead of raising an exception
+- **Empty Results**: `get_events()` returns `None` for 204 (No Content) responses
+
+### Example Error Handling
+```python
+try:
+    identity = client.get_identity("item-123")
+    if identity is None:
+        print("Item not found")
+    else:
+        print(f"Found item: {identity.name}")
+except requests.exceptions.RequestException as e:
+    print(f"Network error: {e}")
+```
+
+## 📖 Examples
+
+### Complete Workflow Example
+```python
+from biosero.datamodels.clients import QueryClient
+
+# Initialize client
+with QueryClient("https://api.example.com") as client:
+    try:
+        # Get identity information
+        identity = client.get_identity("sample-123")
+        if identity:
+            print(f"Processing sample: {identity.name}")
+            
+            # Get location
+            location = client.get_location("sample-123")
+            print(f"Sample location: {location}")
+            
+            # Get container contents if it's a container
+            if hasattr(identity, 'is_container') and identity.is_container:
+                materials = client.get_materials_in_container("sample-123")
+                print(f"Contains {len(materials)} materials")
+                
+                # Get volume information
+                volume = client.get_net_volume("sample-123")
+                print(f"Net volume: {volume.value} {volume.unit}")
+            
+            # Query recent events
+            events = client.get_events(search_params, limit=10, offset=0)
+            if events:
+                print(f"Found {len(events)} recent events")
+                
+    except Exception as e:
+        print(f"Error occurred: {e}")
+```
+
+### Pagination Example
+```python
+def get_all_children(client, parent_id):
+    """Retrieve all child identities using pagination"""
+    all_children = []
+    offset = 0
+    limit = 100
+    
+    while True:
+        children = client.get_child_identities(parent_id, limit, offset)
+        if not children:
+            break
+        all_children.extend(children)
+        offset += limit
+    
+    return all_children
+
+# Usage
+with QueryClient("https://api.example.com") as client:
+    all_children = get_all_children(client, "parent-123")
+    print(f"Total children found: {len(all_children)}")
+```
+
+## 🎯 Best Practices
+
+### 1. Use Context Managers
+Always use the client within a context manager to ensure proper cleanup:
+
+```python
+with QueryClient("https://api.example.com") as client:
+    # Your operations here
+    pass
+```
+
+### 2. Handle Pagination
+For methods that support pagination, implement proper pagination logic:
+
+```python
+def get_all_items_at_location(client, location_id):
+    all_items = []
+    offset = 0
+    limit = 100
+    
+    while True:
+        items = client.get_items_at_location(location_id, limit, offset)
+        if not items:
+            break
+        all_items.extend(items)
+        offset += limit
+    
+    return all_items
+```
+
+### 3. Error Handling
+Implement proper error handling for network and API errors:
+
+```python
+try:
+    identity = client.get_identity("item-123")
+    if identity is None:
+        print("Item not found")
+    else:
+        print(f"Found item: {identity.name}")
+except requests.exceptions.RequestException as e:
+    print(f"Network error: {e}")
+```
+
+### 4. Parameter Extraction
+Use the helper method for safe parameter extraction:
+
+```python
+identity = client.get_identity("sample-123")
+volume = client.get_parameter_value_from_identity(identity, "Volume")
+concentration = client.get_parameter_value_from_identity(identity, "Concentration")
+```
+
+### 5. Performance Considerations
+- **Session Reuse**: The client reuses HTTP connections through the internal session
+- **Pagination**: Use appropriate page sizes to balance memory usage and network efficiency
+- **Caching**: Consider implementing client-side caching for frequently accessed, static data
+- **Connection Pooling**: The underlying requests session provides connection pooling automatically
+
+## 🔗 Related Data Models
 
 The Query Client works with several data models from the `biosero.datamodels` package:
 
@@ -254,13 +447,6 @@ The Query Client works with several data models from the `biosero.datamodels` pa
 - **MaterialInContainerSearchResult**: Represents materials found in containers
 - **Parameter/ParameterCollection**: Represents item properties and metadata
 
-## Thread Safety
+## 🧵 Thread Safety
 
 The `QueryClient` uses a `requests.Session` object internally. While `requests.Session` is generally thread-safe for reading operations, it's recommended to create separate client instances for different threads when performing write operations.
-
-## Performance Considerations
-
-1. **Session Reuse**: The client reuses HTTP connections through the internal session
-2. **Pagination**: Use appropriate page sizes to balance memory usage and network efficiency
-3. **Caching**: Consider implementing client-side caching for frequently accessed, static data
-4. **Connection Pooling**: The underlying requests session provides connection pooling automatically

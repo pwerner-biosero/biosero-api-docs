@@ -1,25 +1,535 @@
-# Order Client
+# Order Client 
 
-The `OrderClient` class provides a comprehensive interface for managing laboratory orders and workflows in the Biosero Data Services API. It handles order creation, status management, template operations, and workflow execution tracking.
+The `Order Client` is a comprehensive interface for managing laboratory orders and workflows in the Biosero Data Services API. This document provides complete documentation for all available methods and usage patterns for order lifecycle management.
 
-## Overview
+## 📋 Table of Contents
 
-The Order Client is designed to interact with the Biosero Order Service, providing methods to:
+- [🔍 Overview](#-overview)
+- [🏗️ Constructor](#️-constructor)
+- [📝 Order Creation Methods](#-order-creation-methods)
+- [📊 Order Query Methods](#-order-query-methods)
+- [🔍 Order Retrieval Methods](#-order-retrieval-methods)
+- [📋 Template Management Methods](#-template-management-methods)
+- [🔄 Order Status Methods](#-order-status-methods)
+- [📦 Assignment Management Methods](#-assignment-management-methods)
+- [🛠️ Utility Methods](#️-utility-methods)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `OrderClient` class provides comprehensive methods for order lifecycle management in laboratory automation workflows. It handles order creation, status tracking, template operations, and assignment management.
+
+**Module:** `biosero.datamodels.clients`  
+**Interfaces:** Context Manager Protocol (`__enter__`, `__exit__`)
+
+### Key Features
 - Create and manage laboratory orders
 - Track order execution and status
-- Manage order templates
-- Handle order assignments and state persistence
+- Manage order templates and assignments
 - Query orders by various criteria (status, date, assignment)
+- Handle order state persistence
+- Automatic resource cleanup via context manager
 
+## 🏗️ Constructor
 
-## Initialization Options
+### OrderClient(url)
 
-The OrderClient supports three different initialization patterns:
+Creates a new instance of the OrderClient with the specified base URL.
 
-### Direct URL
+**Parameters:**
+- `url` (str or callable): The base URL for the API. If callable, it will be invoked to get the URL.
+
+**Example:**
 ```python
-client = OrderClient(url="https://api.example.com")
+# Direct URL
+client = OrderClient("https://api.example.com")
+
+# Callable URL provider
+def get_api_url():
+    return "https://api.example.com"
+
+client = OrderClient(get_api_url)
 ```
+
+### Context Management
+
+The `OrderClient` supports Python's context manager protocol for automatic resource cleanup:
+
+```python
+with OrderClient("https://api.example.com") as client:
+    order = client.create_order(my_order)
+```
+
+## 📝 Order Creation Methods
+
+Methods for creating and initializing new orders in the system.
+
+### create_order(order)
+
+Creates a new order in the system.
+
+**Parameters:**
+- `order` (Order): Order object containing all order details
+
+**Returns:**
+- `str`: JSON response containing order creation details
+
+**Example:**
+```python
+from biosero.datamodels.ordering import Order
+from biosero.datamodels.parameters import ParameterCollection
+
+# Create order
+order = Order(
+    template_name="Sample Processing",
+    parameters=ParameterCollection(),
+    priority=1
+)
+
+client = OrderClient("https://api.example.com")
+result = client.create_order(order)
+print(f"Order created: {result}")
+```
+
+**API Endpoint:** `POST /api/v2.0/OrderService/Order`
+
+## 📊 Order Query Methods
+
+Methods for querying orders based on various criteria with pagination support.
+
+### get_orders(created_on_or_before, limit, offset)
+
+Retrieves orders created on or before a specified date.
+
+**Parameters:**
+- `created_on_or_before` (datetime): Cutoff date for order creation
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip (for pagination)
+
+**Returns:**
+- `List[Order]`: List of order objects matching the criteria
+
+**Example:**
+```python
+from datetime import datetime, timedelta
+
+# Get orders from the last week
+cutoff_date = datetime.now() - timedelta(days=7)
+orders = client.get_orders(cutoff_date, limit=100, offset=0)
+
+for order in orders:
+    print(f"Order {order.id}: {order.status}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/Orders?createdOnOrBefore={date}&limit={limit}&offset={offset}`
+
+### get_completed_orders(limit, offset)
+
+Retrieves orders that have completed execution.
+
+**Parameters:**
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `List[Order]`: List of completed orders
+
+**Example:**
+```python
+completed = client.get_completed_orders(limit=50, offset=0)
+print(f"Found {len(completed)} completed orders")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/CompletedOrders?limit={limit}&offset={offset}`
+
+### get_executing_orders(limit, offset)
+
+Retrieves orders that are currently executing.
+
+**Parameters:**
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `List[Order]`: List of executing orders
+
+**Example:**
+```python
+executing = client.get_executing_orders(limit=50, offset=0)
+for order in executing:
+    print(f"Executing: {order.id} - {order.template_name}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/ExecutingOrders?limit={limit}&offset={offset}`
+
+## 🔍 Order Retrieval Methods
+
+Methods for retrieving specific orders and their details.
+
+### get_order(order_id)
+
+Retrieves a specific order by its identifier.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order
+
+**Returns:**
+- `Order`: The order object with complete details
+
+**Example:**
+```python
+order = client.get_order("order-123")
+if order:
+    print(f"Order: {order.template_name}")
+    print(f"Status: {order.status}")
+    print(f"Priority: {order.priority}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/Order/{order_id}`
+
+### get_orders_by_assignment(assignment_name, limit, offset)
+
+Retrieves orders filtered by assignment name.
+
+**Parameters:**
+- `assignment_name` (str): Name of the assignment to filter by
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `List[Order]`: List of orders with the specified assignment
+
+**Example:**
+```python
+assigned_orders = client.get_orders_by_assignment("Lab-Station-1", limit=50, offset=0)
+for order in assigned_orders:
+    print(f"Assigned order: {order.id}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/OrdersByAssignment?assignmentName={assignment_name}&limit={limit}&offset={offset}`
+
+## 📋 Template Management Methods
+
+Methods for managing order templates and template operations.
+
+### get_order_templates()
+
+Retrieves all available order templates.
+
+**Returns:**
+- `List[OrderTemplate]`: List of all order templates in the system
+
+**Example:**
+```python
+templates = client.get_order_templates()
+for template in templates:
+    print(f"Template: {template.name}")
+    print(f"Description: {template.description}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/OrderTemplates`
+
+### get_order_template(template_name)
+
+Retrieves a specific order template by name.
+
+**Parameters:**
+- `template_name` (str): The name of the template to retrieve
+
+**Returns:**
+- `OrderTemplate`: The template object with complete configuration
+
+**Example:**
+```python
+template = client.get_order_template("Sample Processing")
+if template:
+    print(f"Template: {template.name}")
+    print(f"Parameters: {template.parameters}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/OrderTemplate/{template_name}`
+
+## 🔄 Order Status Methods
+
+Methods for tracking and managing order status throughout the lifecycle.
+
+### get_order_status(order_id)
+
+Retrieves the current status of a specific order.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order
+
+**Returns:**
+- `OrderStatus`: Current status of the order
+
+**Example:**
+```python
+status = client.get_order_status("order-123")
+print(f"Order status: {status}")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/OrderStatus/{order_id}`
+
+### get_orders_by_status(status, limit, offset)
+
+Retrieves orders filtered by their current status.
+
+**Parameters:**
+- `status` (OrderStatus): The status to filter by
+- `limit` (int): Maximum number of orders to return
+- `offset` (int): Number of orders to skip
+
+**Returns:**
+- `List[Order]`: List of orders with the specified status
+
+**Example:**
+```python
+from biosero.datamodels.ordering import OrderStatus
+
+pending_orders = client.get_orders_by_status(OrderStatus.PENDING, limit=100, offset=0)
+print(f"Found {len(pending_orders)} pending orders")
+```
+
+**API Endpoint:** `GET /api/v2.0/OrderService/OrdersByStatus?status={status}&limit={limit}&offset={offset}`
+
+## 📦 Assignment Management Methods
+
+Methods for managing order assignments to specific resources or stations.
+
+### assign_order(order_id, assignment_name)
+
+Assigns an order to a specific resource or station.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order
+- `assignment_name` (str): Name of the resource or station
+
+**Returns:**
+- `bool`: True if assignment was successful
+
+**Example:**
+```python
+success = client.assign_order("order-123", "Lab-Station-1")
+if success:
+    print("Order assigned successfully")
+```
+
+**API Endpoint:** `POST /api/v2.0/OrderService/AssignOrder`
+
+### remove_assignment(order_id)
+
+Removes the current assignment from an order.
+
+**Parameters:**
+- `order_id` (str): The unique identifier of the order
+
+**Returns:**
+- `bool`: True if assignment removal was successful
+
+**Example:**
+```python
+success = client.remove_assignment("order-123")
+if success:
+    print("Assignment removed successfully")
+```
+
+**API Endpoint:** `DELETE /api/v2.0/OrderService/Assignment/{order_id}`
+
+## 🛠️ Utility Methods
+
+Helper methods for data extraction and order manipulation.
+
+### get_parameter_value(parameters, name)
+
+Helper method to extract a specific parameter value from a parameter list.
+
+**Parameters:**
+- `parameters`: List of parameter dictionaries
+- `name` (str): Name of the parameter to find
+
+**Returns:**
+- Value of the parameter if found, otherwise None
+
+**Example:**
+```python
+order = client.get_order("order-123")
+volume = client.get_parameter_value(order.parameters, "Volume")
+concentration = client.get_parameter_value(order.parameters, "Concentration")
+print(f"Order volume: {volume}, concentration: {concentration}")
+```
+
+## ⚠️ Error Handling
+
+The Order Client implements comprehensive error handling strategies:
+
+### HTTP Error Handling
+- All methods call `response.raise_for_status()` to handle HTTP errors
+- Network errors are propagated as requests exceptions
+- Invalid parameters cause ValueError exceptions
+
+### Example Error Handling
+```python
+try:
+    order = client.create_order(my_order)
+    print(f"Order created successfully: {order}")
+except requests.exceptions.HTTPError as e:
+    print(f"HTTP error: {e}")
+except requests.exceptions.RequestException as e:
+    print(f"Network error: {e}")
+except ValueError as e:
+    print(f"Invalid parameter: {e}")
+```
+
+## 📖 Examples
+
+### Complete Order Workflow Example
+```python
+from biosero.datamodels.clients import OrderClient
+from biosero.datamodels.ordering import Order, OrderStatus
+from biosero.datamodels.parameters import ParameterCollection
+from datetime import datetime, timedelta
+
+# Initialize client
+with OrderClient("https://api.example.com") as client:
+    try:
+        # Get available templates
+        templates = client.get_order_templates()
+        print(f"Available templates: {[t.name for t in templates]}")
+        
+        # Create a new order
+        order = Order(
+            template_name="Sample Processing",
+            parameters=ParameterCollection([
+                {"name": "Volume", "value": "100", "unit": "µL"},
+                {"name": "Temperature", "value": "37", "unit": "°C"}
+            ]),
+            priority=1
+        )
+        
+        # Submit the order
+        result = client.create_order(order)
+        order_id = result.get("orderId")
+        print(f"Created order: {order_id}")
+        
+        # Assign to a station
+        client.assign_order(order_id, "Lab-Station-1")
+        print("Order assigned to Lab-Station-1")
+        
+        # Monitor order status
+        status = client.get_order_status(order_id)
+        print(f"Current status: {status}")
+        
+        # Query recent orders
+        recent_date = datetime.now() - timedelta(days=1)
+        recent_orders = client.get_orders(recent_date, limit=10, offset=0)
+        print(f"Found {len(recent_orders)} recent orders")
+        
+    except Exception as e:
+        print(f"Error occurred: {e}")
+```
+
+### Pagination Example
+```python
+def get_all_completed_orders(client):
+    """Retrieve all completed orders using pagination"""
+    all_completed = []
+    offset = 0
+    limit = 100
+    
+    while True:
+        completed = client.get_completed_orders(limit, offset)
+        if not completed:
+            break
+        all_completed.extend(completed)
+        offset += limit
+    
+    return all_completed
+
+# Usage
+with OrderClient("https://api.example.com") as client:
+    all_completed = get_all_completed_orders(client)
+    print(f"Total completed orders: {len(all_completed)}")
+```
+
+## 🎯 Best Practices
+
+### 1. Use Context Managers
+Always use the client within a context manager to ensure proper cleanup:
+
+```python
+with OrderClient("https://api.example.com") as client:
+    # Your operations here
+    pass
+```
+
+### 2. Handle Pagination
+For methods that support pagination, implement proper pagination logic:
+
+```python
+def get_all_orders_by_status(client, status):
+    all_orders = []
+    offset = 0
+    limit = 100
+    
+    while True:
+        orders = client.get_orders_by_status(status, limit, offset)
+        if not orders:
+            break
+        all_orders.extend(orders)
+        offset += limit
+    
+    return all_orders
+```
+
+### 3. Error Handling
+Implement comprehensive error handling for network and API errors:
+
+```python
+try:
+    order = client.create_order(my_order)
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 409:
+        print("Order already exists")
+    else:
+        print(f"HTTP error: {e}")
+except requests.exceptions.RequestException as e:
+    print(f"Network error: {e}")
+```
+
+### 4. Parameter Management
+Use the helper method for safe parameter extraction:
+
+```python
+order = client.get_order("order-123")
+volume = client.get_parameter_value(order.parameters, "Volume")
+if volume:
+    print(f"Order volume: {volume}")
+```
+
+### 5. Performance Considerations
+- **Connection Reuse**: HTTP connections are reused through the internal session
+- **Template Caching**: Cache frequently used templates client-side
+- **Status Polling**: Use reasonable intervals for status checking
+- **Pagination**: Use appropriate page sizes for large queries
+- **Resource Cleanup**: Always dispose of clients to free resources
+
+## 🔗 Related Data Models
+
+The Order Client works with several data models from the `biosero.datamodels` package:
+
+- **Order**: Core order objects with parameters, status, and execution details
+- **OrderTemplate**: Reusable order definitions with parameter specifications
+- **OrderStatus**: Enum representing order lifecycle states (Pending, Executing, Completed, etc.)
+- **OrderDto**: Data transfer object for API communication
+- **ParameterCollection**: Collections of order parameters with validation
+- **Assignment**: Resource assignment information for order execution
+
+## 🧵 Thread Safety
+
+The `OrderClient` uses a `requests.Session` object internally. While `requests.Session` is generally thread-safe for reading operations, it's recommended to create separate client instances for different threads when performing write operations.
 
 ## Order Management
 
