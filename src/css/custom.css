@@ -1,52 +1,172 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Biosero-styled Docusaurus theme
+ * - Hero uses navy background with green accent
+ * - Links/buttons keep the green brand color
+ * - Light + dark theme both supported
  */
 
-/* You can override the default Infima variables here. */
+/* ============================== */
+/* Brand tokens (adjust if needed) */
+/* ============================== */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --brand-primary: #11c28a;        /* Biosero green */
+  --brand-primary-dark: #0d946b;
+  --brand-primary-light: #3bd3a3;
+
+  --brand-bg-light: #ffffff;
+  --brand-bg-dark: #0b1220;        /* navy background */
+  --brand-surface-dark: #0f172a;
+  --brand-text-light: #1f2937;     /* slate-800 */
+  --brand-text-dark: #e5e7eb;      /* slate-200 */
+}
+
+/* ============================== */
+/* Light theme */
+/* ============================== */
+:root {
+  --ifm-color-primary: var(--brand-primary);
+  --ifm-color-primary-dark: var(--brand-primary-dark);
+  --ifm-color-primary-darker: #0b7a55;
+  --ifm-color-primary-light: var(--brand-primary-light);
+  --ifm-color-primary-lighter: #92e7cd;
+  --ifm-color-primary-lightest: #d5f6ea;
+
+  --ifm-font-color-base: var(--brand-text-light);
+  --ifm-background-color: var(--brand-bg-light);
+  --ifm-background-surface-color: var(--brand-bg-light);
+
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-dark);
+
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(17, 194, 138, 0.08);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* ============================== */
+/* Dark theme */
+/* ============================== */
+html[data-theme='dark'] {
+  --ifm-color-primary: var(--brand-primary);
+  --ifm-color-primary-dark: var(--brand-primary-dark);
+  --ifm-color-primary-darker: #0b7a55;
+  --ifm-color-primary-light: var(--brand-primary-light);
+  --ifm-color-primary-lighter: #92e7cd;
+  --ifm-color-primary-lightest: #b8f0e0;
+
+  --ifm-font-color-base: var(--brand-text-dark);
+  --ifm-background-color: var(--brand-bg-dark);
+  --ifm-background-surface-color: var(--brand-surface-dark);
+
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-link-hover-color: var(--ifm-color-primary-light);
+
+  --docusaurus-highlighted-code-line-bg: rgba(17, 194, 138, 0.14);
 }
 
-/* Navbar logo centering */
-.navbar__logo {
+/* ============================== */
+/* Hero section */
+/* ============================== */
+.hero {
+  background-color: var(--brand-bg-dark);
+  color: #ffffff;
+  padding: 4rem 2rem;
+}
+
+.hero__title,
+.hero__subtitle {
+  color: #ffffff;
+}
+
+.hero .button--primary {
+  background-color: var(--brand-primary);
+  color: #ffffff;
+  border-radius: 8px;
+}
+
+.hero .button--primary:hover {
+  background-color: var(--brand-primary-dark);
+}
+
+/* ============================== */
+/* Navbar + Footer */
+/* ============================== */
+.navbar {
+  background: var(--ifm-background-surface-color);
+  box-shadow: inset 0 -1px 0 var(--ifm-color-emphasis-300);
+}
+
+.navbar__logo,
+.navbar__inner,
+.navbar__brand {
   display: flex;
   align-items: center;
 }
 
 .navbar__logo img {
-  align-self: center;
+  height: 28px;
   vertical-align: middle;
 }
 
-/* Alternative approach - ensure navbar items are centered */
-.navbar__inner {
-  display: flex;
-  align-items: center;
+.footer--dark {
+  --ifm-footer-background-color: var(--brand-surface-dark);
+  --ifm-footer-color: var(--brand-text-dark);
+  --ifm-footer-link-color: var(--brand-primary);
 }
 
-.navbar__brand {
-  display: flex;
-  align-items: center;
+/* ============================== */
+/* Links */
+/* ============================== */
+.markdown a {
+  color: var(--ifm-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown a:hover {
+  color: var(--ifm-link-hover-color);
+}
+
+/* ============================== */
+/* Buttons */
+/* ============================== */
+.button--primary {
+  border-radius: 8px;
+  transition: transform 0.05s ease, box-shadow 0.2s ease;
+}
+
+.button--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(17, 194, 138, 0.25);
+}
+
+.button--secondary {
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+/* ============================== */
+/* Cards + Admonitions */
+/* ============================== */
+.card,
+.theme-admonition {
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.theme-admonition.theme-admonition-tip {
+  background: rgba(17, 194, 138, 0.08);
+  border-color: rgba(17, 194, 138, 0.35);
+}
+
+/* ============================== */
+/* Code blocks + Inline code */
+/* ============================== */
+.codeBlockContainer,
+div[class*="codeBlockContent"] {
+  border-radius: 8px;
+}
+
+code {
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
 }
