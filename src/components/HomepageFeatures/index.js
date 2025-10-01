@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 const FeatureList = [
   {
     title: 'Easy to Use',
-    Img: require('@site/static/img/spoctopus-pose-3.png').default,
+    Img: require('@site/static/img/bravo.png').default,
     description: (
       <>
         Docusaurus was designed from the ground up to be easily installed and
