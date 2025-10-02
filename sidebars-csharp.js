@@ -29,8 +29,21 @@ const sidebars = {
       type: 'category', 
       label: '📚 Client Libraries',
       items: [
-        'CSharp Query Client',
-        'CSharp Order Client',
+        {
+          type: 'doc',
+          id: 'CSharp Query Client',
+          label: '🔍 Query Client',
+        },
+        {
+          type: 'doc',
+          id: 'CSharp Order Client', 
+          label: '📋 Order Client',
+        },
+        {
+          type: 'doc',
+          id: 'CSharp Accessioning Client',
+          label: '🏷️ Accessioning Client',
+        },
       ],
     },
   ],

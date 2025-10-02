@@ -97,55 +97,20 @@ const config = {
         items: [
           {
             type: 'dropdown',
-            label: 'C# SDK',
+            label: 'SDK',
             position: 'left',
             items: [
               {
                 type: 'docSidebar',
                 sidebarId: 'csharpSidebar',
                 docsPluginId: 'csharp-sdk',
-                label: 'Documentation',
+                label: 'C#',
               },
-              {
-                to: '/csharp-sdk/intro',
-                label: 'Getting Started',
-              },
-              {
-                to: '/csharp-sdk/CSharp Query Client',
-                label: 'Query Client',
-              },
-              {
-                to: '/csharp-sdk/CSharp Order Client',
-                label: 'Order Client',
-              },
-            ],
-          },
-          {
-            type: 'dropdown',
-            label: 'Python SDK',
-            position: 'left',
-            items: [
               {
                 type: 'docSidebar',
                 sidebarId: 'pythonSidebar',
                 docsPluginId: 'python-sdk',
-                label: 'Documentation',
-              },
-              {
-                to: '/python-sdk/intro',
-                label: 'Getting Started',
-              },
-              {
-                to: '/python-sdk/Query Client',
-                label: 'Query Client',
-              },
-              {
-                to: '/python-sdk/Order Client',
-                label: 'Order Client',
-              },
-              {
-                to: '/python-sdk/Order Scheduler',
-                label: 'Order Scheduler',
+                label: 'Python',
               },
             ],
           },

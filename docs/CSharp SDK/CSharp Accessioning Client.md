@@ -1,0 +1,939 @@
+# Accessioning Client
+
+The `AccessioningClient` is a specialized interface for registering and managing identity accessioning in Biosero Data Services. This document provides comprehensive documentation for all available methods and usage patterns based on the actual implementation.
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Constructors](#️-constructors)
+- [Identity Registration](#-identity-registration)
+- [Identity Removal](#️-identity-removal)
+- [Batch Operations](#-batch-operations)
+- [Error Handling](#️-error-handling)
+- [Examples](#-examples)
+- [Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The `AccessioningClient` class is part of the `Biosero.DataServices.RestClient` namespace and provides methods to register new identities and remove existing ones from the Biosero Data Services system. It focuses specifically on identity lifecycle management during the accessioning process.
+
+**Namespace:** `Biosero.DataServices.RestClient`  
+**Assembly:** `Biosero.DataModels, Version=0.5.10.0`  
+**Interfaces:** `IDisposable, IAccessioningClient`
+
+## 🏗️ Constructors
+
+The AccessioningClient provides three constructor overloads for different initialization scenarios:
+
+### AccessioningClient(string url)
+
+Creates a new instance with a fixed base URL.
+
+**Parameters:**
+- `url` (string): The base URL of the Data Services endpoint
+
+**Example:**
+```csharp
+var client = new AccessioningClient("http://localhost:8105/api/v2.0/");
+```
+
+## 📝 Identity Registration
+
+Methods for registering new identities in the system during the accessioning process.
+
+### Register / RegisterAsync
+
+Registers a single identity in the system with associated event context.
+
+**Signatures:**
+```csharp
+public string Register(Identity identity, EventContext eventContext)
+public async Task<string> RegisterAsync(Identity identity, EventContext eventContext)
+```
+
+**Parameters:**
+- `identity` (Identity): The identity object to register in the system
+- `eventContext` (EventContext): Context information for the registration event
+
+**Returns:**
+- `string` / `Task<string>`: The unique identifier assigned to the registered identity
+
+**Example:**
+```csharp
+using var client = new AccessioningClient("http://localhost:8105/api/v2.0/");
+
+// Create the identity to register
+var newIdentity = new Identity
+{
+    Name = "Sample-001",
+    Type = "Sample",
+    Description = "Blood sample for analysis",
+    // Configure other identity properties
+};
+
+// Create event context for audit trail
+var eventContext = new EventContext
+{
+    UserId = "lab-technician-001",
+    Timestamp = DateTime.Now,
+    Source = "Laboratory Accessioning System",
+    // Configure other context properties
+};
+
+// Register the identity (asynchronous)
+string assignedId = await client.RegisterAsync(newIdentity, eventContext);
+Console.WriteLine($"Identity registered with ID: {assignedId}");
+
+// Register the identity (synchronous)
+string assignedId = client.Register(newIdentity, eventContext);
+Console.WriteLine($"Identity registered with ID: {assignedId}");
+```
+
+### RegisterMany / RegisterManyAsync
+
+Registers multiple identities in a single batch operation with shared event context.
+
+**Signatures:**
+```csharp
+public string[] RegisterMany(Identity[] identities, EventContext context)
+public async Task<string[]> RegisterManyAsync(Identity[] identities, EventContext context)
+```
+
+**Parameters:**
+- `identities` (Identity[]): Array of identity objects to register
+- `context` (EventContext): Shared context information for all registration events
+
+**Returns:**
+- `string[]` / `Task<string[]>`: Array of unique identifiers assigned to each registered identity (in the same order as input)
+
+**Example:**
+```csharp
+using var client = new AccessioningClient("http://localhost:8105/api/v2.0/");
+
+// Create multiple identities for batch registration
+var identities = new Identity[]
+{
+    new Identity { Name = "Sample-001", Type = "Sample", Description = "Blood sample" },
+    new Identity { Name = "Sample-002", Type = "Sample", Description = "Urine sample" },
+    new Identity { Name = "Container-001", Type = "Container", Description = "Sample tube" }
+};
+
+// Create shared event context
+var batchContext = new EventContext
+{
+    UserId = "batch-processor",
+    Timestamp = DateTime.Now,
+    Source = "Automated Accessioning System"
+};
+
+// Register all identities in batch (asynchronous)
+string[] assignedIds = await client.RegisterManyAsync(identities, batchContext);
+
+Console.WriteLine($"Registered {assignedIds.Length} identities:");
+for (int i = 0; i < assignedIds.Length; i++)
+{
+    Console.WriteLine($"  {identities[i].Name} -> {assignedIds[i]}");
+}
+```
+
+## 🗑️ Identity Removal
+
+Methods for removing identities from the system when they are no longer needed.
+
+### Remove / RemoveAsync
+
+Removes a specific identity from the system using its identifier.
+
+**Signatures:**
+```csharp
+public void Remove(string identifier)
+public async Task RemoveAsync(string identifier)
+```
+
+**Parameters:**
+- `identifier` (string): The unique identifier of the identity to remove
+
+**Returns:**
+- `void` / `Task`: No return value
+
+**Example:**
+```csharp
+using var client = new AccessioningClient("http://localhost:8105/api/v2.0/");
+
+// Remove a specific identity (asynchronous)
+await client.RemoveAsync("SAMPLE-123");
+Console.WriteLine("Identity SAMPLE-123 has been removed");
+
+// Remove a specific identity (synchronous)
+client.Remove("CONTAINER-456");
+Console.WriteLine("Identity CONTAINER-456 has been removed");
+```
+
+## 🔄 Batch Operations
+
+The AccessioningClient is optimized for both individual and batch operations:
+
+### Single vs Batch Registration
+
+```csharp
+// Single registration - Use for individual items
+string singleId = await client.RegisterAsync(identity, context);
+
+// Batch registration - More efficient for multiple items
+string[] batchIds = await client.RegisterManyAsync(identities, sharedContext);
+```
+
+### Benefits of Batch Operations
+
+1. **Performance** - Reduced network overhead with fewer HTTP requests
+2. **Consistency** - All registrations share the same event context and timestamp
+3. **Atomicity** - All registrations succeed or fail together
+4. **Audit Trail** - Simplified tracking of related registrations
+
+### Dispose()
+
+Properly disposes of the AccessioningClient and its resources.
+
+**Signature:**
+```csharp
+public void Dispose()
+```
+
+**Note:** The AccessioningClient implements `IDisposable`. Use `using` statements or call `Dispose()` explicitly to ensure proper cleanup of HTTP resources.
+
+## ⚠️ Error Handling
+
+The AccessioningClient can throw various exceptions during operation. Proper error handling is essential for robust applications.
+
+### Common Exception Types:
+- **HttpRequestException** - Network connectivity issues
+- **TaskCanceledException** - Request timeouts
+- **Exception** - General API errors with HTTP status codes
+- **ArgumentException** - Invalid parameters (null identities, etc.)
+
+### HTTP Status Code Handling:
+- **All errors** - Throws `Exception` with status code and reason phrase
+- **Successful operations** - Returns assigned identifiers or completes without error
+
+### Recommended Error Handling Pattern:
+
+```csharp
+public async Task<string> SafeRegisterAsync(Identity identity, EventContext context)
+{
+    try
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        return await client.RegisterAsync(identity, context);
+    }
+    catch (HttpRequestException httpEx)
+    {
+        _logger.LogError("Network error registering identity {Name}: {Error}", 
+            identity.Name, httpEx.Message);
+        throw;
+    }
+    catch (TaskCanceledException timeoutEx)
+    {
+        _logger.LogError("Timeout registering identity {Name}: {Error}", 
+            identity.Name, timeoutEx.Message);
+        throw;
+    }
+    catch (Exception ex) when (ex.Message.Contains("400"))
+    {
+        _logger.LogError("Invalid identity data for {Name}: {Error}", 
+            identity.Name, ex.Message);
+        throw new ArgumentException($"Invalid identity data: {ex.Message}", ex);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError("API error registering identity {Name}: {Error}", 
+            identity.Name, ex.Message);
+        throw;
+    }
+}
+```
+
+## 💡 Examples
+
+### Example 1: Sample Accessioning Workflow
+
+```csharp
+using Biosero.DataServices.RestClient;
+using Biosero.DataModels.Resources;
+using Biosero.DataModels.Events;
+
+public class SampleAccessioningService
+{
+    private readonly string _baseUrl = "http://localhost:8105/api/v2.0/";
+    private readonly ILogger<SampleAccessioningService> _logger;
+    
+    public SampleAccessioningService(ILogger<SampleAccessioningService> logger)
+    {
+        _logger = logger;
+    }
+    
+    public async Task<string> AccessionSampleAsync(SampleInfo sampleInfo, string userId)
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        
+        // Create identity from sample information
+        var identity = new Identity
+        {
+            Name = sampleInfo.BarcodeId,
+            Type = "Sample",
+            Description = $"{sampleInfo.SampleType} from patient {sampleInfo.PatientId}",
+            Properties = new Dictionary<string, object>
+            {
+                { "PatientId", sampleInfo.PatientId },
+                { "SampleType", sampleInfo.SampleType },
+                { "CollectionDate", sampleInfo.CollectionDate },
+                { "Priority", sampleInfo.Priority }
+            }
+        };
+        
+        // Create event context for audit
+        var eventContext = new EventContext
+        {
+            UserId = userId,
+            Timestamp = DateTime.Now,
+            Source = "Sample Accessioning System",
+            Details = $"Sample accessioned from barcode {sampleInfo.BarcodeId}"
+        };
+        
+        try
+        {
+            string assignedId = await client.RegisterAsync(identity, eventContext);
+            _logger.LogInformation("Sample {BarcodeId} accessioned with ID {AssignedId}", 
+                sampleInfo.BarcodeId, assignedId);
+            
+            return assignedId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to accession sample {BarcodeId}", sampleInfo.BarcodeId);
+            throw;
+        }
+    }
+}
+
+public class SampleInfo
+{
+    public string BarcodeId { get; set; }
+    public string PatientId { get; set; }
+    public string SampleType { get; set; }
+    public DateTime CollectionDate { get; set; }
+    public string Priority { get; set; }
+}
+```
+
+### Example 2: Batch Sample Processing
+
+```csharp
+public class BatchAccessioningService
+{
+    public async Task<BatchAccessionResult> ProcessSampleBatchAsync(
+        SampleInfo[] samples, string userId)
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        
+        // Convert sample info to identities
+        var identities = samples.Select(sample => new Identity
+        {
+            Name = sample.BarcodeId,
+            Type = "Sample",
+            Description = $"{sample.SampleType} sample",
+            Properties = new Dictionary<string, object>
+            {
+                { "PatientId", sample.PatientId },
+                { "SampleType", sample.SampleType },
+                { "CollectionDate", sample.CollectionDate },
+                { "BatchId", sample.BatchId }
+            }
+        }).ToArray();
+        
+        // Create batch event context
+        var batchContext = new EventContext
+        {
+            UserId = userId,
+            Timestamp = DateTime.Now,
+            Source = "Batch Accessioning System",
+            Details = $"Batch processing of {samples.Length} samples"
+        };
+        
+        try
+        {
+            var stopwatch = Stopwatch.StartNew();
+            string[] assignedIds = await client.RegisterManyAsync(identities, batchContext);
+            
+            _logger.LogInformation("Batch processed {Count} samples in {ElapsedMs}ms", 
+                samples.Length, stopwatch.ElapsedMilliseconds);
+            
+            return new BatchAccessionResult
+            {
+                Success = true,
+                ProcessedCount = samples.Length,
+                AssignedIds = assignedIds,
+                ProcessingTimeMs = stopwatch.ElapsedMilliseconds
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Batch processing failed for {Count} samples", samples.Length);
+            
+            return new BatchAccessionResult
+            {
+                Success = false,
+                ProcessedCount = 0,
+                Error = ex.Message
+            };
+        }
+    }
+}
+
+public class BatchAccessionResult
+{
+    public bool Success { get; set; }
+    public int ProcessedCount { get; set; }
+    public string[] AssignedIds { get; set; }
+    public long ProcessingTimeMs { get; set; }
+    public string Error { get; set; }
+}
+```
+
+### Example 3: Container and Sample Registration
+
+```csharp
+public class ContainerAccessioningService
+{
+    public async Task<ContainerRegistrationResult> RegisterContainerWithSamplesAsync(
+        ContainerInfo containerInfo, SampleInfo[] samples, string userId)
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        
+        var allIdentities = new List<Identity>();
+        
+        // Create container identity
+        var containerIdentity = new Identity
+        {
+            Name = containerInfo.ContainerId,
+            Type = "Container",
+            Description = $"{containerInfo.ContainerType} container",
+            Properties = new Dictionary<string, object>
+            {
+                { "ContainerType", containerInfo.ContainerType },
+                { "Capacity", containerInfo.Capacity },
+                { "Material", containerInfo.Material }
+            }
+        };
+        allIdentities.Add(containerIdentity);
+        
+        // Create sample identities
+        foreach (var sample in samples)
+        {
+            var sampleIdentity = new Identity
+            {
+                Name = sample.BarcodeId,
+                Type = "Sample",
+                Description = $"Sample in container {containerInfo.ContainerId}",
+                Properties = new Dictionary<string, object>
+                {
+                    { "ContainerId", containerInfo.ContainerId },
+                    { "SampleType", sample.SampleType },
+                    { "Position", sample.Position }
+                }
+            };
+            allIdentities.Add(sampleIdentity);
+        }
+        
+        // Register all identities together
+        var eventContext = new EventContext
+        {
+            UserId = userId,
+            Timestamp = DateTime.Now,
+            Source = "Container Accessioning System",
+            Details = $"Container {containerInfo.ContainerId} with {samples.Length} samples"
+        };
+        
+        string[] assignedIds = await client.RegisterManyAsync(allIdentities.ToArray(), eventContext);
+        
+        return new ContainerRegistrationResult
+        {
+            ContainerId = assignedIds[0],
+            SampleIds = assignedIds.Skip(1).ToArray(),
+            TotalRegistered = assignedIds.Length
+        };
+    }
+}
+
+public class ContainerInfo
+{
+    public string ContainerId { get; set; }
+    public string ContainerType { get; set; }
+    public int Capacity { get; set; }
+    public string Material { get; set; }
+}
+
+public class ContainerRegistrationResult
+{
+    public string ContainerId { get; set; }
+    public string[] SampleIds { get; set; }
+    public int TotalRegistered { get; set; }
+}
+```
+
+### Example 4: Identity Cleanup and Maintenance
+
+```csharp
+public class IdentityMaintenanceService
+{
+    public async Task CleanupExpiredIdentitiesAsync(string[] expiredIds)
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        
+        var tasks = expiredIds.Select(async id =>
+        {
+            try
+            {
+                await client.RemoveAsync(id);
+                _logger.LogInformation("Removed expired identity {Id}", id);
+                return new { Id = id, Success = true, Error = (string)null };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to remove identity {Id}", id);
+                return new { Id = id, Success = false, Error = ex.Message };
+            }
+        });
+        
+        var results = await Task.WhenAll(tasks);
+        
+        var successful = results.Count(r => r.Success);
+        var failed = results.Count(r => !r.Success);
+        
+        _logger.LogInformation("Identity cleanup completed: {Successful} successful, {Failed} failed", 
+            successful, failed);
+        
+        if (failed > 0)
+        {
+            var failedIds = results.Where(r => !r.Success).Select(r => r.Id);
+            _logger.LogWarning("Failed to remove identities: {FailedIds}", 
+                string.Join(", ", failedIds));
+        }
+    }
+    
+    public async Task<bool> ValidateIdentityExistsAsync(string identifier)
+    {
+        try
+        {
+            // Note: This would typically use QueryClient to check if identity exists
+            // before attempting removal with AccessioningClient
+            using var queryClient = new QueryClient(_baseUrl);
+            var identity = await queryClient.GetIdentityAsync(identifier);
+            return identity != null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+```
+
+### Example 5: Integration with Other Services
+
+```csharp
+public class IntegratedAccessioningService
+{
+    private readonly AccessioningClient _accessioningClient;
+    private readonly QueryClient _queryClient;
+    private readonly OrderClient _orderClient;
+    
+    public IntegratedAccessioningService(string baseUrl)
+    {
+        _accessioningClient = new AccessioningClient(baseUrl);
+        _queryClient = new QueryClient(baseUrl);
+        _orderClient = new OrderClient(baseUrl);
+    }
+    
+    public async Task<string> AccessionSampleWithOrderAsync(
+        SampleInfo sampleInfo, string orderTemplateId, string userId)
+    {
+        try
+        {
+            // 1. Register the sample identity
+            var identity = CreateSampleIdentity(sampleInfo);
+            var eventContext = CreateEventContext(userId, "Sample accessioning with order");
+            
+            string sampleId = await _accessioningClient.RegisterAsync(identity, eventContext);
+            _logger.LogInformation("Sample registered with ID {SampleId}", sampleId);
+            
+            // 2. Verify registration by querying back
+            var registeredIdentity = await _queryClient.GetIdentityAsync(sampleId);
+            if (registeredIdentity == null)
+            {
+                throw new InvalidOperationException($"Sample registration failed - cannot retrieve {sampleId}");
+            }
+            
+            // 3. Create processing order for the sample
+            var order = new Order
+            {
+                Name = $"Process sample {sampleId}",
+                TemplateId = orderTemplateId,
+                Parameters = new Dictionary<string, string>
+                {
+                    { "SampleId", sampleId },
+                    { "Priority", sampleInfo.Priority }
+                }
+            };
+            
+            string orderId = await _orderClient.CreateOrderAsync(order);
+            _logger.LogInformation("Created order {OrderId} for sample {SampleId}", orderId, sampleId);
+            
+            return sampleId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to accession sample {BarcodeId} with order", 
+                sampleInfo.BarcodeId);
+            throw;
+        }
+    }
+    
+    private Identity CreateSampleIdentity(SampleInfo sampleInfo)
+    {
+        return new Identity
+        {
+            Name = sampleInfo.BarcodeId,
+            Type = "Sample",
+            Description = $"{sampleInfo.SampleType} sample",
+            Properties = new Dictionary<string, object>
+            {
+                { "PatientId", sampleInfo.PatientId },
+                { "SampleType", sampleInfo.SampleType },
+                { "CollectionDate", sampleInfo.CollectionDate },
+                { "Priority", sampleInfo.Priority }
+            }
+        };
+    }
+    
+    private EventContext CreateEventContext(string userId, string operation)
+    {
+        return new EventContext
+        {
+            UserId = userId,
+            Timestamp = DateTime.Now,
+            Source = "Integrated Accessioning Service",
+            Details = operation
+        };
+    }
+    
+    public void Dispose()
+    {
+        _accessioningClient?.Dispose();
+        _queryClient?.Dispose();
+        _orderClient?.Dispose();
+    }
+}
+```
+
+## ✅ Best Practices
+
+### 1. **Always Use Using Statements for Proper Disposal**
+```csharp
+// ✅ Good - Automatic disposal
+using var client = new AccessioningClient(_baseUrl);
+string id = await client.RegisterAsync(identity, context);
+
+// ✅ Alternative - Manual disposal in service classes
+public class AccessioningService : IDisposable
+{
+    private readonly AccessioningClient _client;
+    
+    public AccessioningService(string baseUrl)
+    {
+        _client = new AccessioningClient(baseUrl);
+    }
+    
+    public void Dispose() => _client?.Dispose();
+}
+```
+
+### 2. **Prefer Async Methods for Better Performance**
+```csharp
+// ✅ Good - Non-blocking, scalable
+string id = await client.RegisterAsync(identity, context);
+await client.RemoveAsync("SAMPLE-123");
+
+// ❌ Avoid - Blocking threads
+string id = client.Register(identity, context);
+client.Remove("SAMPLE-123");
+```
+
+### 3. **Use Batch Operations for Multiple Items**
+```csharp
+// ✅ Good - Efficient batch registration
+string[] ids = await client.RegisterManyAsync(identities, sharedContext);
+
+// ❌ Less efficient - Multiple individual calls
+var ids = new List<string>();
+foreach (var identity in identities)
+{
+    string id = await client.RegisterAsync(identity, context);
+    ids.Add(id);
+}
+```
+
+### 4. **Provide Comprehensive Event Context**
+```csharp
+// ✅ Good - Rich event context for audit trails
+var eventContext = new EventContext
+{
+    UserId = currentUser.Id,
+    Timestamp = DateTime.Now,
+    Source = "Laboratory Information System",
+    Details = $"Sample accessioned from barcode scanner at station {stationId}",
+    CorrelationId = Guid.NewGuid().ToString(),
+    SessionId = httpContext.Session.Id
+};
+```
+
+### 5. **Validate Identity Data Before Registration**
+```csharp
+// ✅ Good - Validate before registration
+public async Task<string> RegisterValidatedIdentityAsync(Identity identity, EventContext context)
+{
+    // Validate required fields
+    if (string.IsNullOrWhiteSpace(identity.Name))
+        throw new ArgumentException("Identity name is required");
+    
+    if (string.IsNullOrWhiteSpace(identity.Type))
+        throw new ArgumentException("Identity type is required");
+    
+    // Validate business rules
+    if (identity.Type == "Sample" && !identity.Properties.ContainsKey("PatientId"))
+        throw new ArgumentException("Sample identities must have PatientId property");
+    
+    using var client = new AccessioningClient(_baseUrl);
+    return await client.RegisterAsync(identity, context);
+}
+```
+
+### 6. **Handle Partial Failures in Batch Operations**
+```csharp
+// ✅ Good - Handle batch operation failures gracefully
+public async Task<BatchResult> SafeBatchRegisterAsync(Identity[] identities, EventContext context)
+{
+    try
+    {
+        using var client = new AccessioningClient(_baseUrl);
+        string[] assignedIds = await client.RegisterManyAsync(identities, context);
+        
+        return new BatchResult
+        {
+            Success = true,
+            SuccessfulCount = identities.Length,
+            AssignedIds = assignedIds
+        };
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Batch registration failed, attempting individual registration");
+        
+        // Fallback to individual registration
+        var results = new List<string>();
+        var errors = new List<string>();
+        
+        foreach (var identity in identities)
+        {
+            try
+            {
+                string id = await client.RegisterAsync(identity, context);
+                results.Add(id);
+            }
+            catch (Exception individualEx)
+            {
+                _logger.LogError(individualEx, "Failed to register identity {Name}", identity.Name);
+                errors.Add($"{identity.Name}: {individualEx.Message}");
+                results.Add(null); // Maintain array alignment
+            }
+        }
+        
+        return new BatchResult
+        {
+            Success = errors.Count == 0,
+            SuccessfulCount = results.Count(id => id != null),
+            AssignedIds = results.ToArray(),
+            Errors = errors.ToArray()
+        };
+    }
+}
+```
+
+### 7. **Implement Proper Logging and Monitoring**
+```csharp
+// ✅ Good - Comprehensive logging
+public async Task<string> RegisterWithLoggingAsync(Identity identity, EventContext context)
+{
+    using var client = new AccessioningClient(_baseUrl);
+    
+    _logger.LogInformation("Starting registration for identity {Name} of type {Type}", 
+        identity.Name, identity.Type);
+    
+    try
+    {
+        var stopwatch = Stopwatch.StartNew();
+        string assignedId = await client.RegisterAsync(identity, context);
+        
+        _logger.LogInformation("Successfully registered identity {Name} as {AssignedId} in {ElapsedMs}ms", 
+            identity.Name, assignedId, stopwatch.ElapsedMilliseconds);
+            
+        // Optional: Emit metrics for monitoring
+        _metrics.Counter("identities_registered").WithTag("type", identity.Type).Increment();
+        _metrics.Histogram("registration_duration_ms").Record(stopwatch.ElapsedMilliseconds);
+        
+        return assignedId;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to register identity {Name} of type {Type}", 
+            identity.Name, identity.Type);
+        
+        _metrics.Counter("registration_errors").WithTag("type", identity.Type).Increment();
+        throw;
+    }
+}
+```
+
+### 8. **Use Correlation IDs for Tracking**
+```csharp
+// ✅ Good - Use correlation IDs for tracking related operations
+public class AccessioningWorkflow
+{
+    public async Task<WorkflowResult> ProcessSampleWorkflowAsync(SampleInfo sample)
+    {
+        var correlationId = Guid.NewGuid().ToString();
+        
+        using var accessioningClient = new AccessioningClient(_baseUrl);
+        using var orderClient = new OrderClient(_baseUrl);
+        
+        var eventContext = new EventContext
+        {
+            UserId = _currentUser.Id,
+            Timestamp = DateTime.Now,
+            Source = "Sample Workflow",
+            CorrelationId = correlationId,
+            Details = $"Processing sample workflow for {sample.BarcodeId}"
+        };
+        
+        try
+        {
+            // All operations share the same correlation ID for tracking
+            _logger.LogInformation("Starting workflow {CorrelationId} for sample {BarcodeId}", 
+                correlationId, sample.BarcodeId);
+            
+            string sampleId = await accessioningClient.RegisterAsync(
+                CreateSampleIdentity(sample), eventContext);
+            
+            string orderId = await orderClient.CreateOrderAsync(
+                CreateProcessingOrder(sampleId, correlationId));
+            
+            _logger.LogInformation("Completed workflow {CorrelationId}: Sample {SampleId}, Order {OrderId}", 
+                correlationId, sampleId, orderId);
+            
+            return new WorkflowResult { SampleId = sampleId, OrderId = orderId, CorrelationId = correlationId };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Workflow {CorrelationId} failed for sample {BarcodeId}", 
+                correlationId, sample.BarcodeId);
+            throw;
+        }
+    }
+}
+```
+
+### 9. **Implement Retry Logic for Resilience**
+```csharp
+// ✅ Good - Retry logic with exponential backoff
+public async Task<string> RegisterWithRetryAsync(Identity identity, EventContext context, int maxRetries = 3)
+{
+    for (int attempt = 1; attempt <= maxRetries; attempt++)
+    {
+        try
+        {
+            using var client = new AccessioningClient(_baseUrl);
+            return await client.RegisterAsync(identity, context);
+        }
+        catch (Exception ex) when (attempt < maxRetries && IsRetryableError(ex))
+        {
+            var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt)); // Exponential backoff
+            _logger.LogWarning(ex, "Registration attempt {Attempt} failed for {Name}, retrying in {DelaySeconds}s", 
+                attempt, identity.Name, delay.TotalSeconds);
+            
+            await Task.Delay(delay);
+        }
+    }
+    
+    throw new InvalidOperationException($"Failed to register identity {identity.Name} after {maxRetries} attempts");
+}
+
+private bool IsRetryableError(Exception ex)
+{
+    return ex is HttpRequestException || 
+           ex is TaskCanceledException ||
+           (ex is Exception apiEx && apiEx.Message.Contains("503")); // Service unavailable
+}
+```
+
+### 10. **Consider Integration with Other Services**
+```csharp
+// ✅ Good - Coordinate with other services when appropriate
+public class CoordinatedAccessioningService
+{
+    public async Task<AccessionResult> AccessionWithValidationAsync(Identity identity, EventContext context)
+    {
+        // 1. Validate identity doesn't already exist
+        using var queryClient = new QueryClient(_baseUrl);
+        var existing = await queryClient.GetIdentityAsync(identity.Name);
+        
+        if (existing != null)
+        {
+            return new AccessionResult 
+            { 
+                Success = false, 
+                Error = $"Identity {identity.Name} already exists",
+                ExistingId = existing.Id
+            };
+        }
+        
+        // 2. Register the identity
+        using var accessioningClient = new AccessioningClient(_baseUrl);
+        string assignedId = await accessioningClient.RegisterAsync(identity, context);
+        
+        // 3. Verify registration succeeded
+        var registered = await queryClient.GetIdentityAsync(assignedId);
+        if (registered == null)
+        {
+            throw new InvalidOperationException($"Registration verification failed for {assignedId}");
+        }
+        
+        return new AccessionResult 
+        { 
+            Success = true, 
+            AssignedId = assignedId,
+            RegisteredIdentity = registered
+        };
+    }
+}
+```
+
+## 🔗 Related Documentation
+
+- [C# Query Client](./CSharp Query Client.md) - For querying registered identities
+- [C# Order Client](./CSharp Order Client.md) - For creating orders after accessioning
+- [C# SDK Overview](./intro.md) - Getting started with the C# SDK
+
+---
+
+*This documentation is based on the AccessioningClient class from Biosero.DataServices.RestClient. For the most up-to-date API reference, use F12 in VS Code to view the decompiled source.*
+
+*Last updated: October 1, 2025*

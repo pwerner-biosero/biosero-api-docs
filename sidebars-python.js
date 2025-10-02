@@ -18,9 +18,21 @@ const pythonSidebars = {
       type: 'category',
       label: '📚 Client Libraries',
       items: [
-        'Query Client',
-        'Order Client',
-        'Order Scheduler',
+        {
+          type: 'doc',
+          id: 'Query Client',
+          label: '🔍 Query Client',
+        },
+        {
+          type: 'doc',
+          id: 'Order Client',
+          label: '📋 Order Client',
+        },
+        {
+          type: 'doc',
+          id: 'Order Scheduler',
+          label: '⏰ Order Scheduler',
+        },
       ],
     },
   ],
