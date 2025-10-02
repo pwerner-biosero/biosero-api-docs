@@ -4,9 +4,7 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import {themes as prismThemes} from 'prism-react-renderer';
-
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -34,8 +32,7 @@ const config = {
   onBrokenLinks: 'throw',
 
   // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
+  // useful metadata like html lang.
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -63,7 +60,8 @@ const config = {
         path: 'docs/CSharp SDK',
         routeBasePath: 'csharp-sdk',
         sidebarPath: './sidebars-csharp.js',
-        editUrl: 'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
       },
     ],
     [
@@ -73,7 +71,8 @@ const config = {
         path: 'docs/Python SDK',
         routeBasePath: 'python-sdk',
         sidebarPath: './sidebars-python.js',
-        editUrl: 'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
       },
     ],
   ],
@@ -81,18 +80,16 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
       image: 'img/social-card.jpeg',
       colorMode: {
         respectPrefersColorScheme: true,
       },
       navbar: {
-    
         logo: {
           alt: 'Biosero Logo',
-          src: 'img/logo-dark.png', // Logo for dark mode
+          src: 'img/logo-dark.png',
           srcDark: 'img/logo.png',
-          target: '_self', // Optional: how to open the link
+          target: '_self',
         },
         items: [
           {
@@ -114,6 +111,9 @@ const config = {
               },
             ],
           },
+          // Auth actions as TOP-LEVEL items (valid `position`)
+          { to: '/login', label: 'Login', position: 'right' },
+          { to: '/logout', label: 'Logout', position: 'right' },
         ],
       },
       footer: {
@@ -141,17 +141,7 @@ const config = {
               },
             ],
           },
-          // {
-          //   title: 'More',
-          //   items: [
-          //     {
-          //       label: 'GitHub',
-          //       href: 'https://github.com/pwerner-biosero/biosero-api-docs',
-          //     },
-          //   ],
-          // },
         ],
-        
       },
       prism: {
         theme: prismThemes.github,
