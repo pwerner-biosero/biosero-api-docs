@@ -8,8 +8,7 @@ const FeatureList = [
     Img: require('@site/static/img/bravo.png').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+       Biosero Data Services APIs are designed with developers in mind. The APIs provide a consistent, well-structured interface to get you up and running quickly.
       </>
     ),
   },
@@ -18,18 +17,16 @@ const FeatureList = [
     Img: require('@site/static/img/plug.png').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Our APIs handle order management, identity tracking, event logging, and more—so you can concentrate on creating solutions that accelerate discovery.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Powered by Flexibility',
     Img: require('@site/static/img/Flask.png').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Biosero Data Services APIs extend seamlessly into your environment. Use them directly, or through our Python and C# SDKs, to integrate with lab automation platforms, ELNs, and informatics systems.
       </>
     ),
   },
