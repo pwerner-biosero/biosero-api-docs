@@ -46,6 +46,17 @@ const sidebars = {
         },
       ],
     },
+    {
+      type: 'category',
+      label: '🔒 Protected Content',
+      items: [
+        {
+          type: 'doc',
+          id: 'test-page',
+          label: '🧪 Test Page',
+        },
+      ],
+    },
   ],
 };
 

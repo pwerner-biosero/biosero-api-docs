@@ -1,0 +1,41 @@
+---
+id: test-page
+title: Test Page
+---
+
+import Protected from '@site/src/components/Protected';
+
+<Protected>
+
+# Test Page
+
+This is a protected page that requires authentication to view.
+
+## Content
+
+This content is only visible to authenticated users. You can add any markdown content here:
+
+- **Bullet points**
+- *Italic text*
+- `Code snippets`
+
+### Example Code Block
+
+```csharp
+public class Example
+{
+    public string Name { get; set; }
+    public int Value { get; set; }
+}
+```
+
+### Table Example
+
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   |
+| Data 4   | Data 5   | Data 6   |
+
+This demonstrates that you can use all standard markdown features within the protected content area.
+
+</Protected>
