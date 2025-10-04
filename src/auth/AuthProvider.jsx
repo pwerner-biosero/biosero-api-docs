@@ -1,6 +1,7 @@
-// src/auth/AuthProvider.jsx
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { PublicClientApplication, InteractionRequiredAuthError } from "@azure/msal-browser";
+import React, {
+  createContext, useContext, useEffect, useMemo, useRef, useState,
+} from "react";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { msalConfig, loginRequest } from "./msalConfig";
 
 const AuthContext = createContext({
@@ -9,20 +10,34 @@ const AuthContext = createContext({
   login: async () => {},
   logout: () => {},
   getAccessToken: async () => null,
+  ready: false,
 });
-
-const pca = new PublicClientApplication(msalConfig);
 
 export function AuthProvider({ children }) {
   const [account, setAccount] = useState(null);
+  const [ready, setReady] = useState(false);
+  const pcaRef = useRef(null); // { pca, InteractionRequiredAuthError }
   const isAuthenticated = !!account;
 
   useEffect(() => {
-    // MSAL redirect handler (required for redirect flow)
-    pca
-      .handleRedirectPromise()
-      .then((result) => {
-        if (result && result.account) {
+    let cancelled = false;
+
+    async function init() {
+      if (!ExecutionEnvironment.canUseDOM) return;
+
+      try {
+        const {
+          PublicClientApplication,
+          InteractionRequiredAuthError,
+        } = await import("@azure/msal-browser");
+
+        const pca = new PublicClientApplication(msalConfig);
+        pcaRef.current = { pca, InteractionRequiredAuthError };
+
+        const result = await pca.handleRedirectPromise();
+        if (cancelled) return;
+
+        if (result?.account) {
           pca.setActiveAccount(result.account);
           setAccount(result.account);
         } else {
@@ -32,17 +47,32 @@ export function AuthProvider({ children }) {
             setAccount(active);
           }
         }
-      })
-      .catch((e) => {
-        console.error("MSAL redirect error:", e);
-      });
+      } catch (e) {
+        console.error("MSAL initialization error:", e);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    }
+
+    init();
+    return () => { cancelled = true; };
   }, []);
 
   const login = async () => {
-    await pca.loginRedirect(loginRequest);
+    if (!ExecutionEnvironment.canUseDOM || !pcaRef.current) return;
+
+    // Save current path (respect baseUrl)
+    try {
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
+      sessionStorage.setItem("returnTo", currentPath || "/biosero-api-docs/");
+    } catch {}
+
+    await pcaRef.current.pca.loginRedirect(loginRequest);
   };
 
   const logout = () => {
+    if (!ExecutionEnvironment.canUseDOM || !pcaRef.current) return;
+    const { pca } = pcaRef.current;
     const active = pca.getActiveAccount();
     pca.logoutRedirect({
       account: active || undefined,
@@ -51,6 +81,9 @@ export function AuthProvider({ children }) {
   };
 
   const getAccessToken = async (scopes = loginRequest.scopes) => {
+    if (!ExecutionEnvironment.canUseDOM || !pcaRef.current) return null;
+
+    const { pca, InteractionRequiredAuthError } = pcaRef.current;
     const active = pca.getActiveAccount();
     if (!active) {
       await pca.loginRedirect(loginRequest);
@@ -59,9 +92,12 @@ export function AuthProvider({ children }) {
 
     try {
       const result = await pca.acquireTokenSilent({ account: active, scopes });
-      return result.accessToken || null;
+      return result?.accessToken ?? null;
     } catch (e) {
-      if (e instanceof InteractionRequiredAuthError) {
+      const needsInteraction =
+        e?.name === "InteractionRequiredAuthError" ||
+        (typeof InteractionRequiredAuthError !== "undefined" && e instanceof InteractionRequiredAuthError);
+      if (needsInteraction) {
         await pca.acquireTokenRedirect({ scopes });
         return null;
       }
@@ -71,8 +107,8 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ isAuthenticated, account, login, logout, getAccessToken }),
-    [isAuthenticated, account]
+    () => ({ isAuthenticated, account, login, logout, getAccessToken, ready }),
+    [isAuthenticated, account, ready]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

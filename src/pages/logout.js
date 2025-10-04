@@ -1,4 +1,3 @@
-// src/pages/logout.js
 import React, { useEffect } from "react";
 import { useAuth } from "@site/src/auth/AuthProvider";
 
