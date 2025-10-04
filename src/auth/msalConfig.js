@@ -5,10 +5,8 @@ const tenantDomain = "bioserob2cdev.onmicrosoft.com";
 const policy = "b2c_1a_signup_signin";
 const clientId = "2af9b946-0d99-42e7-8a62-f3b74d1f6e53";
 
-// Try alternative authority format - sometimes B2C is picky about the format
-const authority = `https://${tenantDomain}.b2clogin.com/${tenantDomain}/${policy}`;
-// Backup: const authority = `https://${host}/${tenantDomain}/${policy}`;
-
+// Use the WORKING authority format from the test
+const authority = `https://${host}/${tenantDomain}/${policy}`;
 const authorityMetadata = `${authority}/v2.0/.well-known/openid-configuration`;
 
 // Dynamic redirect URIs based on environment
@@ -67,9 +65,9 @@ console.log("Authority Metadata URL:", authorityMetadata);
 export const msalConfig = {
   auth: {
     clientId,
-    authority,                 // Let MSAL auto-discover the metadata
-    // authorityMetadata,      // Comment out explicit metadata for now
-    knownAuthorities: [`${tenantDomain}.b2clogin.com`],  // Match the authority format
+    authority,                 // Using the WORKING authority format
+    authorityMetadata,         // Re-enable explicit metadata since we know it works
+    knownAuthorities: [host],  // Use the original host format
     redirectUri: getRedirectUri(),
     postLogoutRedirectUri: getPostLogoutRedirectUri(),
     navigateToLoginRequestUrl: true,
