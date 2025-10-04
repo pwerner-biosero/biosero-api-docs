@@ -62,18 +62,48 @@ console.log("Policy:", policy);
 console.log("Authority URL:", authority);
 console.log("Authority Metadata URL:", authorityMetadata);
 
+// Test the metadata URL manually before MSAL uses it
+console.log("🧪 Testing metadata URL manually...");
+if (typeof fetch !== 'undefined') {
+  fetch(authorityMetadata)
+    .then(response => {
+      console.log("✅ Metadata URL response status:", response.status);
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    })
+    .then(data => {
+      console.log("✅ Metadata fetched successfully:", {
+        issuer: data.issuer,
+        authorization_endpoint: data.authorization_endpoint,
+        token_endpoint: data.token_endpoint
+      });
+    })
+    .catch(error => {
+      console.log("❌ Metadata URL test failed:", error);
+    });
+}
+
 export const msalConfig = {
   auth: {
     clientId,
     authority,                 // Using the WORKING authority format
-    authorityMetadata,         // Re-enable explicit metadata since we know it works
     knownAuthorities: [host],  // Use the original host format
     redirectUri: getRedirectUri(),
     postLogoutRedirectUri: getPostLogoutRedirectUri(),
-    navigateToLoginRequestUrl: true,
+    // Remove optional parameters that might be causing issues
+    // navigateToLoginRequestUrl: true,
   },
-  cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false },
+  cache: { 
+    cacheLocation: "localStorage", 
+    storeAuthStateInCookie: false 
+  },
   system: {
+    allowNativeBroker: false, // Disable native broker for web apps
+    windowHashTimeout: 60000, // Increase timeout for slower networks
+    loadFrameTimeout: 6000,   // Increase iframe timeout
     loggerOptions: {
       loggerCallback: (level, message) => {
         console.log(`MSAL [${level}]:`, message);
@@ -81,6 +111,10 @@ export const msalConfig = {
         if (message.includes("redirect")) {
           console.log("Current redirect URI:", getRedirectUri());
           console.log("Current post-logout URI:", getPostLogoutRedirectUri());
+        }
+        // Log any fetch-related errors
+        if (message.includes("fetch") || message.includes("endpoint") || message.includes("metadata")) {
+          console.log("🔍 MSAL Network Debug:", message);
         }
       },
       logLevel: LogLevel.Verbose, // More detailed logging for debugging
