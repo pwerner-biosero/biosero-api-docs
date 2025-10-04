@@ -1,18 +1,31 @@
 // src/pages/login.js
-import React, { useEffect } from "react";
-import { useAuth } from "@site/src/auth/AuthProvider";
+import React from "react";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 export default function LoginPage() {
-  const { isAuthenticated, login, ready } = useAuth();
+  return (
+    <BrowserOnly fallback={<p>Preparing sign-in…</p>}>
+      {() => {
+        const React = require("react");
+        const { useEffect } = React;
+        const { useAuth } = require("@site/src/auth/AuthProvider");
 
-  useEffect(() => {
-    if (!ready) return;
-    if (!isAuthenticated) {
-      login();
-    } else if (typeof window !== "undefined") {
-      window.location.replace("/");
-    }
-  }, [isAuthenticated, login, ready]);
+        function LoginClient() {
+          const { isAuthenticated, login, ready } = useAuth();
+          useEffect(() => {
+            if (!ready) return;
+            if (!isAuthenticated) login();
+            else {
+              const returnTo = sessionStorage.getItem("returnTo") || "/biosero-api-docs/";
+              sessionStorage.removeItem("returnTo");
+              window.location.replace(returnTo);
+            }
+          }, [isAuthenticated, login, ready]);
+          return <p>Redirecting to sign in…</p>;
+        }
 
-  return <p>Redirecting to sign in…</p>;
+        return <LoginClient />;
+      }}
+    </BrowserOnly>
+  );
 }

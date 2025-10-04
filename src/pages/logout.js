@@ -1,13 +1,23 @@
-import React, { useEffect } from "react";
-import { useAuth } from "@site/src/auth/AuthProvider";
+// src/pages/logout.js
+import React from "react";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 export default function LogoutPage() {
-  const { logout, ready } = useAuth();
+  return (
+    <BrowserOnly fallback={<p>Preparing sign-out…</p>}>
+      {() => {
+        const React = require("react");
+        const { useEffect } = React;
+        const { useAuth } = require("@site/src/auth/AuthProvider");
 
-  useEffect(() => {
-    if (!ready) return;
-    logout();
-  }, [logout, ready]);
+        function LogoutClient() {
+          const { logout, ready } = useAuth();
+          useEffect(() => { if (ready) logout(); }, [logout, ready]);
+          return <p>Signing you out…</p>;
+        }
 
-  return <p>Signing you out…</p>;
+        return <LogoutClient />;
+      }}
+    </BrowserOnly>
+  );
 }

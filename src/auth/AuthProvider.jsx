@@ -1,6 +1,5 @@
-import React, {
-  createContext, useContext, useEffect, useMemo, useRef, useState,
-} from "react";
+// src/auth/AuthProvider.jsx
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 import { msalConfig, loginRequest } from "./msalConfig";
 
@@ -17,7 +16,6 @@ export function AuthProvider({ children }) {
   const [account, setAccount] = useState(null);
   const [ready, setReady] = useState(false);
   const pcaRef = useRef(null); // { pca, InteractionRequiredAuthError }
-  const isAuthenticated = !!account;
 
   useEffect(() => {
     let cancelled = false;
@@ -26,12 +24,9 @@ export function AuthProvider({ children }) {
       if (!ExecutionEnvironment.canUseDOM) return;
 
       try {
-        const {
-          PublicClientApplication,
-          InteractionRequiredAuthError,
-        } = await import("@azure/msal-browser");
-
+        const { PublicClientApplication, InteractionRequiredAuthError } = await import("@azure/msal-browser");
         const pca = new PublicClientApplication(msalConfig);
+        await pca.initialize();
         pcaRef.current = { pca, InteractionRequiredAuthError };
 
         const result = await pca.handleRedirectPromise();
@@ -48,7 +43,7 @@ export function AuthProvider({ children }) {
           }
         }
       } catch (e) {
-        console.error("MSAL initialization error:", e);
+        console.error("MSAL init error:", e);
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -60,14 +55,11 @@ export function AuthProvider({ children }) {
 
   const login = async () => {
     if (!ExecutionEnvironment.canUseDOM || !pcaRef.current) return;
-
-    // Save current path (respect baseUrl)
     try {
       const currentPath = window.location.pathname + window.location.search + window.location.hash;
       sessionStorage.setItem("returnTo", currentPath || "/biosero-api-docs/");
     } catch {}
-
-    await pcaRef.current.pca.loginRedirect(loginRequest);
+    await pcaRef.current.pca.loginRedirect({ ...loginRequest, authority: msalConfig.auth.authority });
   };
 
   const logout = () => {
@@ -82,34 +74,29 @@ export function AuthProvider({ children }) {
 
   const getAccessToken = async (scopes = loginRequest.scopes) => {
     if (!ExecutionEnvironment.canUseDOM || !pcaRef.current) return null;
-
     const { pca, InteractionRequiredAuthError } = pcaRef.current;
     const active = pca.getActiveAccount();
     if (!active) {
-      await pca.loginRedirect(loginRequest);
+      await pca.loginRedirect({ ...loginRequest, authority: msalConfig.auth.authority });
       return null;
     }
-
     try {
       const result = await pca.acquireTokenSilent({ account: active, scopes });
       return result?.accessToken ?? null;
     } catch (e) {
-      const needsInteraction =
-        e?.name === "InteractionRequiredAuthError" ||
-        (typeof InteractionRequiredAuthError !== "undefined" && e instanceof InteractionRequiredAuthError);
+      const needsInteraction = e?.name === "InteractionRequiredAuthError" || (typeof InteractionRequiredAuthError !== "undefined" && e instanceof InteractionRequiredAuthError);
       if (needsInteraction) {
-        await pca.acquireTokenRedirect({ scopes });
+        await pca.acquireTokenRedirect({ scopes, authority: msalConfig.auth.authority });
         return null;
       }
-      console.error("Token acquisition error:", e);
+      console.error("Token error:", e);
       return null;
     }
   };
 
-  const value = useMemo(
-    () => ({ isAuthenticated, account, login, logout, getAccessToken, ready }),
-    [isAuthenticated, account, ready]
-  );
+  const value = useMemo(() => ({
+    isAuthenticated: !!account, account, login, logout, getAccessToken, ready
+  }), [account, ready]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
