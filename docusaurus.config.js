@@ -111,9 +111,11 @@ const config = {
               },
             ],
           },
-          // Auth actions as TOP-LEVEL items (valid `position`)
-          { to: '/login', label: 'Login', position: 'right' },
-          { to: '/logout', label: 'Logout', position: 'right' },
+          // Auth actions will be handled by swizzled navbar component
+          {
+            type: 'custom-AuthNavbarItems',
+            position: 'right',
+          },
         ],
       },
       footer: {
