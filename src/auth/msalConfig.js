@@ -4,7 +4,11 @@ const host = "bioserob2cdev.b2clogin.com";
 const tenantDomain = "bioserob2cdev.onmicrosoft.com";
 const policy = "b2c_1a_signup_signin";
 const clientId = "2af9b946-0d99-42e7-8a62-f3b74d1f6e53";
-const authority = `https://${host}/${tenantDomain}/${policy}`;
+
+// Try alternative authority format - sometimes B2C is picky about the format
+const authority = `https://${tenantDomain}.b2clogin.com/${tenantDomain}/${policy}`;
+// Backup: const authority = `https://${host}/${tenantDomain}/${policy}`;
+
 const authorityMetadata = `${authority}/v2.0/.well-known/openid-configuration`;
 
 // Dynamic redirect URIs based on environment
@@ -14,14 +18,20 @@ const getRedirectUri = () => {
     const baseUrl = "/biosero-api-docs";
     
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return `${protocol}//${hostname}:${port}${baseUrl}/auth-redirect`;
+      const uri = `${protocol}//${hostname}:${port}${baseUrl}/auth-redirect`;
+      console.log("🔧 Local redirect URI:", uri);
+      return uri;
     } else {
       // Production (GitHub Pages)
-      return `${protocol}//${hostname}${baseUrl}/auth-redirect`;
+      const uri = `${protocol}//${hostname}${baseUrl}/auth-redirect`;
+      console.log("🌐 Production redirect URI:", uri);
+      return uri;
     }
   }
   // Fallback for SSR
-  return "https://pwerner-biosero.github.io/biosero-api-docs/auth-redirect";
+  const fallback = "https://pwerner-biosero.github.io/biosero-api-docs/auth-redirect";
+  console.log("📦 SSR fallback redirect URI:", fallback);
+  return fallback;
 };
 
 const getPostLogoutRedirectUri = () => {
@@ -30,22 +40,36 @@ const getPostLogoutRedirectUri = () => {
     const baseUrl = "/biosero-api-docs";
     
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return `${protocol}//${hostname}:${port}${baseUrl}/`;
+      const uri = `${protocol}//${hostname}:${port}${baseUrl}/`;
+      console.log("🔧 Local post-logout URI:", uri);
+      return uri;
     } else {
       // Production (GitHub Pages)
-      return `${protocol}//${hostname}${baseUrl}/`;
+      const uri = `${protocol}//${hostname}${baseUrl}/`;
+      console.log("🌐 Production post-logout URI:", uri);
+      return uri;
     }
   }
   // Fallback for SSR
-  return "https://pwerner-biosero.github.io/biosero-api-docs/";
+  const fallback = "https://pwerner-biosero.github.io/biosero-api-docs/";
+  console.log("📦 SSR fallback post-logout URI:", fallback);
+  return fallback;
 };
+
+// Debug the authority configuration
+console.log("🔍 MSAL Authority Debug Info:");
+console.log("Host:", host);
+console.log("Tenant Domain:", tenantDomain);
+console.log("Policy:", policy);
+console.log("Authority URL:", authority);
+console.log("Authority Metadata URL:", authorityMetadata);
 
 export const msalConfig = {
   auth: {
     clientId,
-    authority,                 // EXACTLY matches the working path (no trailing slash)
-    authorityMetadata,         // Explicit metadata = no discovery surprises
-    knownAuthorities: [host],  // MUST be exactly the host part above
+    authority,                 // Let MSAL auto-discover the metadata
+    // authorityMetadata,      // Comment out explicit metadata for now
+    knownAuthorities: [`${tenantDomain}.b2clogin.com`],  // Match the authority format
     redirectUri: getRedirectUri(),
     postLogoutRedirectUri: getPostLogoutRedirectUri(),
     navigateToLoginRequestUrl: true,
