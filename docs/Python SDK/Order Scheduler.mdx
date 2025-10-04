@@ -1,3 +1,12 @@
+---
+id: Order Scheduler
+title: Order Scheduler
+---
+
+import Protected from '@site/src/components/Protected';
+
+<Protected>
+
 # Order Scheduler
 
 The `Order Scheduler` is the main interface for managing workflow execution and order scheduling in the Biosero Data Services system. This document provides comprehensive documentation for workflow orchestration and order lifecycle management.
@@ -637,3 +646,5 @@ The Order Scheduler works with several data models from the `biosero.datamodels`
 ## 🧵 Thread Safety
 
 The `OrderScheduler` is designed for async operations and should be used within async contexts. While individual operations are thread-safe, it's recommended to use separate scheduler instances for different async tasks when performing concurrent operations.
+
+</Protected>

@@ -1,3 +1,12 @@
+---
+id: Query Client
+title: Query Client
+---
+
+import Protected from '@site/src/components/Protected';
+
+<Protected>
+
 # Query Client
 
 The `QueryClient` is the primary interface for interacting with Biosero Data Services from Python applications. This document provides comprehensive documentation for all available methods and usage patterns based on the actual implementation.
@@ -450,3 +459,5 @@ The Query Client works with several data models from the `biosero.datamodels` pa
 ## 🧵 Thread Safety
 
 The `QueryClient` uses a `requests.Session` object internally. While `requests.Session` is generally thread-safe for reading operations, it's recommended to create separate client instances for different threads when performing write operations.
+
+</Protected>
