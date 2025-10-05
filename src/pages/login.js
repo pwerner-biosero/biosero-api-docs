@@ -21,7 +21,28 @@ export default function LoginPage() {
               window.location.replace(returnTo);
             }
           }, [isAuthenticated, login, ready]);
-          return <p>Redirecting to sign in…</p>;
+          return (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '60vh',
+              textAlign: 'center',
+              padding: '2rem'
+            }}>
+              <img 
+                src="/biosero-api-docs/img/redirect.png"
+                alt="Redirecting to sign in" 
+                style={{
+                  maxWidth: '300px',
+                  marginBottom: '1.5rem'
+                }}
+              />
+              <h2>Redirecting to Sign In</h2>
+              <p>Please wait while we redirect you...</p>
+            </div>
+          );
         }
 
         return <LoginClient />;
