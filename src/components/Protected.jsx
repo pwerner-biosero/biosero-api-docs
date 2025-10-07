@@ -7,12 +7,13 @@ export default function Protected({ children }) {
   const { isAuthenticated } = useAuth();
   const loginUrl = useBaseUrl("/login");
 
-  if (!isAuthenticated) {
-    if (typeof window !== "undefined") {
-      window.location.href = loginUrl;
-    }
-    return null;
-  }
+  // Temporarily disable authentication - uncomment lines below to re-enable
+  // if (!isAuthenticated) {
+  //   if (typeof window !== "undefined") {
+  //     window.location.href = loginUrl;
+  //   }
+  //   return null;
+  // }
 
   return <>{children}</>;
 }
