@@ -1,9 +1,23 @@
+---
+id: Event Client
+title: Event Client
+---
 
 # Event Client
 
 The `EventClient` class provides a streamlined interface for publishing events to the Biosero Data Services API. It handles event message formatting, transmission, and supports both synchronous and asynchronous operations for laboratory event tracking and audit trails.
 
-## Overview
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Initialization](#️-initialization)
+- [📤 Event Publishing](#-event-publishing)
+- [🛠️ Utility Methods](#️-utility-methods)
+- [🔧 Resource Management](#-resource-management)
+- [⚠️ Error Handling](#️-error-handling)
+- [📋 Event Message Structure](#-event-message-structure)
+
+## 🔍 Overview
 
 The Event Client is designed to interact with the Biosero Event Service, providing methods to:
 - Publish laboratory events for audit and tracking
@@ -13,16 +27,14 @@ The Event Client is designed to interact with the Biosero Event Service, providi
 - Provide server time synchronization
 
 
-## Initialization Options
-
-The EventClient supports three different initialization patterns:
+## 🏗️ Initialization
 
 ### Direct URL
 ```python
 client = EventClient(url="https://api.example.com")
 ```
 
-## Event Publishing
+## 📤 Event Publishing
 
 ### `publish_event(event_message)`
 
@@ -105,7 +117,7 @@ asyncio.run(publish_event_async())
 
 **API Endpoint:** `POST /api/v2.0/EventService`
 
-## Utility Methods
+## 🛠️ Utility Methods
 
 ### `get_server_time()`
 
@@ -123,24 +135,7 @@ print(f"Server time: {server_time}")
 event.created_date_utc = server_time
 ```
 
-### `remove_none_values(d)`
-
-Helper method that removes None values from dictionaries before API transmission.
-
-**Parameters:**
-- `d` (dict): Dictionary to clean
-
-**Returns:**
-- `dict`: Dictionary with None values removed
-
-**Example:**
-```python
-data = {"name": "sample", "value": None, "type": "biological"}
-cleaned = client.remove_none_values(data)
-# Result: {"name": "sample", "type": "biological"}
-```
-
-## Resource Management
+## 🔧 Resource Management
 
 ### Automatic Cleanup
 The EventClient implements automatic resource cleanup through the `__del__` method:
@@ -164,7 +159,7 @@ finally:
         client._http_client.close()
 ```
 
-## Error Handling
+## ⚠️ Error Handling
 
 The Event Client implements robust error handling:
 
@@ -185,7 +180,7 @@ except ValueError as e:
     print(f"Invalid configuration: {e}")
 ```
 
-## Event Message Structure
+## 📋 Event Message Structure
 
 ### Required Fields
 EventMessage objects should contain:
@@ -205,7 +200,7 @@ EventMessage objects should contain:
 #### Sample Processing Event
 ```python
 event = EventMessage(
-    topic="sample.processing.started",
+    topic="Biosero.DataModels.Events.MyCustomEvent",
     subjects=["sample-123", "batch-456"],
     data={
         "workflow": "DNA_Extraction",
@@ -217,34 +212,8 @@ event = EventMessage(
 )
 ```
 
-#### Equipment Status Event
-```python
-event = EventMessage(
-    topic="equipment.status.changed",
-    subjects=["centrifuge-001"],
-    data={
-        "previous_status": "idle",
-        "new_status": "running",
-        "speed_rpm": 3000,
-        "temperature": 4.0
-    },
-    tags=["equipment", "status", "centrifuge"]
-)
-```
 
-#### Quality Control Event
-```python
-event = EventMessage(
-    topic="quality.check.completed",
-    subjects=["qc-batch-789"],
-    data={
-        "passed": True,
-        "score": 98.5,
-        "criteria": "contamination_check",
-        "notes": "All samples passed contamination screening"
-    },
-    tags=["quality", "validation", "contamination"]
-)
-```
+
+
 
 *This client provides essential event publishing capabilities for laboratory audit trails, monitoring, and workflow tracking in the Biosero ecosystem.*

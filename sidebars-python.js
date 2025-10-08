@@ -20,6 +20,11 @@ const pythonSidebars = {
       items: [
         {
           type: 'doc',
+          id: 'Accessioning Client',
+          label: '🧬 Accessioning Client',
+        },
+        {
+          type: 'doc',
           id: 'Query Client',
           label: '🔍 Query Client',
         },
@@ -32,6 +37,15 @@ const pythonSidebars = {
           type: 'doc',
           id: 'Order Scheduler',
           label: '⏰ Order Scheduler',
+        },
+        { type: 'doc',
+          id: 'Event Client',
+          label: '📦 Event Client',
+        },
+        {
+          type: 'doc',
+          id: 'Event Retriever',
+          label: '🔄 Event Retriever',
         },
       ],
     },

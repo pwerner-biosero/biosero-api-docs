@@ -1,8 +1,29 @@
-# Accessioning Client
+---
+id: Accessioning Client
+title: Accessioning Client
+---
+
+import Protected from '@site/src/components/Protected';
+
+<Protected>
 
 The `AccessioningClient` class provides a comprehensive interface for registering and managing laboratory identities in the Biosero Data Services API. It handles identity registration, removal, and batch operations for laboratory asset management.
 
-## Overview
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Class Definition](#️-class-definition)
+- [🔧 Context Management](#-context-management)
+- [🆔 Identity Management](#-identity-management)
+- [⚠️ Error Handling](#️-error-handling)
+- [📋 Data Requirements](#-data-requirements)
+- [🎯 Best Practices](#-best-practices)
+- [📊 Data Models](#-data-models)
+- [🧵 Thread Safety](#-thread-safety)
+- [⚡ Performance Considerations](#-performance-considerations)
+- [🔗 Integration Examples](#-integration-examples)
+
+## 🔍 Overview
 
 The Accessioning Client is designed to interact with the Biosero Accessioning Service, providing methods to:
 - Register individual laboratory identities
@@ -10,10 +31,10 @@ The Accessioning Client is designed to interact with the Biosero Accessioning Se
 - Perform batch registration of multiple identities
 - Manage identity properties and metadata
 
-## Class Definition
+## 🏗️ Class Definition
 
 
-## Context Management
+## 🔧 Context Management
 
 The `AccessioningClient` supports Python's context manager protocol for automatic resource cleanup:
 
@@ -22,7 +43,7 @@ with AccessioningClient("https://api.example.com") as client:
     client.register(identity, event_context)
 ```
 
-## Identity Management
+## 🆔 Identity Management
 
 ### `register(identity, event_context)`
 
@@ -158,7 +179,7 @@ The method automatically converts:
 - Each identity's `ParameterCollection` to parameter dictionaries
 - Event context to filtered dictionary (removes None values)
 
-## Error Handling
+## ⚠️ Error Handling
 
 The Accessioning Client implements comprehensive error handling:
 
@@ -183,7 +204,7 @@ except Exception as e:
     print(f"API error: {e}")
 ```
 
-## Data Requirements
+## 📋 Data Requirements
 
 ### Identity Structure
 Identities must be properly structured `Identity` objects with:
@@ -204,7 +225,7 @@ Event context objects should contain:
 - Timestamp information
 - Any relevant metadata
 
-## Best Practices
+## 🎯 Best Practices
 
 ### 1. Use Context Managers
 Always use the client within a context manager:
@@ -260,7 +281,7 @@ parameter = Parameter(
 )
 ```
 
-## Data Models
+## 📊 Data Models
 
 The Accessioning Client works with several data models:
 
@@ -269,18 +290,18 @@ The Accessioning Client works with several data models:
 - **Parameter**: Individual property/metadata items
 - **Event Context**: Contextual information for operations
 
-## Thread Safety
+## 🧵 Thread Safety
 
 The `AccessioningClient` uses a `requests.Session` object internally. While generally thread-safe for reading operations, it's recommended to create separate client instances for different threads when performing write operations.
 
-## Performance Considerations
+## ⚡ Performance Considerations
 
 1. **Batch Operations**: Use `register_many()` for bulk operations to reduce network overhead
 2. **Session Reuse**: The client reuses HTTP connections through the internal session
 3. **Data Validation**: Type checking occurs before API calls to catch errors early
 4. **Memory Management**: Use context managers to ensure proper resource cleanup
 
-## Integration Examples
+## 🔗 Integration Examples
 
 ### Laboratory Sample Registration
 ```python
@@ -344,12 +365,9 @@ def register_equipment(equipment_info):
         return client.register(identity, event_context)
 ```
 
-## API Versioning
-
-The Accessioning Client currently uses API version 2.0:
-- **Registration endpoints**: `/api/v2.0/AccessioningService/`
-- **Future compatibility**: Designed to support version updates
-
 ---
 
 *This client provides essential functionality for laboratory identity management and is a core component of the Biosero Data Services ecosystem.*
+
+
+</Protected>

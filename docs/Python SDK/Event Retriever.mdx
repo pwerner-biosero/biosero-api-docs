@@ -1,0 +1,456 @@
+---
+id: Event Retriever
+title: Event Retriever
+---
+
+import Protected from '@site/src/components/Protected';
+
+<Protected>
+
+# Event Retriever
+
+The `InstrumentEventRetriever` class provides a specialized interface for retrieving and filtering instrument operation events from the Biosero Data Services API. It simplifies the process of querying specific instrument events with advanced filtering capabilities for laboratory workflow analysis.
+
+## 📋 Table of Contents
+
+- [🔍 Overview](#-overview)
+- [🏗️ Constructor](#️-constructor)
+- [📤 Event Retrieval Methods](#-event-retrieval-methods)
+- [🔍 Filtering Options](#-filtering-options)
+- [⚠️ Error Handling](#️-error-handling)
+- [📖 Examples](#-examples)
+- [🎯 Best Practices](#-best-practices)
+
+## 🔍 Overview
+
+The Event Retriever is designed to interact with the Biosero Query Service, providing specialized methods to:
+- Retrieve instrument operation events for specific modules and associations
+- Filter events by various criteria including actor, process, and instrument details
+- Handle large datasets with pagination support
+- Parse and filter event data efficiently
+- Support laboratory workflow analysis and monitoring
+
+**Module:** `biosero.dataservices.restclient.queryclient`  
+**Dependencies:** `QueryClient`, `EventSearchParameters`
+
+### Key Features
+- Specialized instrument event retrieval
+- Advanced filtering capabilities
+- Built-in data parsing and filtering
+- Pagination support for large datasets
+- Association and module-specific queries
+
+## 🏗️ Constructor
+
+### InstrumentEventRetriever(data_services_url, association_id, module_id)
+
+Creates a new instance of the InstrumentEventRetriever with the specified configuration.
+
+**Parameters:**
+- `data_services_url` (str): The base URL of the Data Services endpoint
+- `association_id` (str): The association identifier for filtering events
+- `module_id` (str): The module identifier for filtering events
+
+**Example:**
+```python
+from biosero.dataservices.restclient.instrumenteventretriever import InstrumentEventRetriever
+
+# Initialize the event retriever
+retriever = InstrumentEventRetriever(
+    data_services_url="http://localhost:8105/api/v2.0/",
+    association_id="lab-association-001",
+    module_id="instrument-module-123"
+)
+```
+
+## 📤 Event Retrieval Methods
+
+### get_instrument_events()
+
+Retrieves and filters instrument operation events based on the specified criteria.
+
+**Signature:**
+```python
+def get_instrument_events(
+    self, 
+    actor_id: str = None, 
+    workcell_process: str = None, 
+    instrument_process: str = None, 
+    instrument_name: str = None, 
+    operation: str = None, 
+    subjects: list = None, 
+    limit: int = 10000, 
+    offset: int = 0
+)
+```
+
+**Parameters:**
+- `actor_id` (str, optional): Filter by specific actor identifier
+- `workcell_process` (str, optional): Filter by workcell process name
+- `instrument_process` (str, optional): Filter by instrument process name
+- `instrument_name` (str, optional): Filter by instrument name
+- `operation` (str, optional): Filter by operation type
+- `subjects` (list, optional): Filter by specific subjects list
+- `limit` (int, default=10000): Maximum number of events to retrieve
+- `offset` (int, default=0): Number of events to skip for pagination
+
+**Returns:**
+- `list`: Filtered list of instrument operation events matching the criteria
+
+**Example:**
+```python
+# Retrieve all events for a specific instrument
+events = retriever.get_instrument_events(
+    instrument_name="Hamilton STAR",
+    limit=100
+)
+
+# Retrieve events for a specific workcell process
+process_events = retriever.get_instrument_events(
+    workcell_process="PCR_Preparation",
+    actor_id="technician-001"
+)
+
+# Retrieve events with multiple filters
+filtered_events = retriever.get_instrument_events(
+    instrument_name="Tecan EVO",
+    operation="aspirate",
+    workcell_process="Sample_Transfer",
+    limit=500,
+    offset=100
+)
+```
+
+## 🔍 Filtering Options
+
+The Event Retriever supports multiple filtering options that can be combined:
+
+### Primary Filters (Applied via EventSearchParameters)
+- **Association ID**: Automatically applied based on constructor parameter
+- **Topic**: Fixed to "Biosero.DataModels.Events.InstrumentOperationEvent"
+- **Module ID**: Automatically applied based on constructor parameter
+- **Actor ID**: Optional filter for specific actor
+
+### Secondary Filters (Applied to event data)
+- **Workcell Process**: Filters events by `workcellProcess` field in event data
+- **Instrument Process**: Filters events by `instrumentProcess` field in event data
+- **Instrument Name**: Filters events by `instrumentName` field in event data
+- **Operation**: Filters events by `operation` field in event data
+- **Subjects**: Filters events by exact match of subjects list
+
+### Pagination Options
+- **Limit**: Controls maximum number of events retrieved (default: 10,000)
+- **Offset**: Enables pagination by skipping specified number of events
+
+## ⚠️ Error Handling
+
+The Event Retriever can encounter various types of errors during operation:
+
+### Common Error Types
+- **Connection Errors**: Network connectivity issues with the Data Services API
+- **Authentication Errors**: Invalid credentials or expired tokens
+- **Data Parsing Errors**: Malformed JSON in event data
+- **Parameter Validation Errors**: Invalid parameter values
+
+### Recommended Error Handling Pattern
+
+```python
+import json
+import logging
+from biosero.dataservices.restclient.instrumenteventretriever import InstrumentEventRetriever
+
+logger = logging.getLogger(__name__)
+
+def safe_get_events(retriever, **filters):
+    try:
+        events = retriever.get_instrument_events(**filters)
+        logger.info(f"Retrieved {len(events)} events successfully")
+        return events
+    except ConnectionError as e:
+        logger.error(f"Connection error retrieving events: {e}")
+        return []
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parsing error in event data: {e}")
+        return []
+    except Exception as e:
+        logger.error(f"Unexpected error retrieving events: {e}")
+        return []
+```
+
+## 📖 Examples
+
+### Example 1: Basic Event Retrieval
+
+```python
+from biosero.dataservices.restclient.instrumenteventretriever import InstrumentEventRetriever
+
+# Initialize retriever
+retriever = InstrumentEventRetriever(
+    data_services_url="http://localhost:8105/api/v2.0/",
+    association_id="lab-001",
+    module_id="liquid-handler-01"
+)
+
+# Get recent events
+recent_events = retriever.get_instrument_events(limit=50)
+
+print(f"Retrieved {len(recent_events)} recent events")
+for event in recent_events:
+    print(f"Event: {event.Id}, Timestamp: {event.Timestamp}")
+```
+
+### Example 2: Filtered Event Analysis
+
+```python
+import json
+from datetime import datetime, timedelta
+
+# Get events for specific instrument and operation
+aspiration_events = retriever.get_instrument_events(
+    instrument_name="Hamilton STAR",
+    operation="aspirate",
+    limit=1000
+)
+
+# Analyze event data
+total_volume = 0
+for event in aspiration_events:
+    try:
+        data = json.loads(event.Data)
+        volume = data.get("volume", 0)
+        total_volume += volume
+    except json.JSONDecodeError:
+        continue
+
+print(f"Total aspirated volume: {total_volume} µL")
+print(f"Number of aspiration events: {len(aspiration_events)}")
+```
+
+### Example 3: Pagination for Large Datasets
+
+```python
+def get_all_events_paginated(retriever, page_size=1000, **filters):
+    """Retrieve all events using pagination to handle large datasets."""
+    all_events = []
+    offset = 0
+    
+    while True:
+        # Get next page of events
+        page_events = retriever.get_instrument_events(
+            limit=page_size,
+            offset=offset,
+            **filters
+        )
+        
+        if not page_events:
+            break
+            
+        all_events.extend(page_events)
+        offset += page_size
+        
+        print(f"Retrieved {len(page_events)} events (total: {len(all_events)})")
+        
+        # Break if we got fewer events than the page size (last page)
+        if len(page_events) < page_size:
+            break
+    
+    return all_events
+
+# Usage
+all_pcr_events = get_all_events_paginated(
+    retriever,
+    workcell_process="PCR_Preparation",
+    page_size=500
+)
+```
+
+### Example 4: Event Data Analysis
+
+```python
+import json
+from collections import defaultdict
+
+def analyze_instrument_operations(retriever, instrument_name):
+    """Analyze operations performed by a specific instrument."""
+    events = retriever.get_instrument_events(
+        instrument_name=instrument_name,
+        limit=5000
+    )
+    
+    operation_counts = defaultdict(int)
+    process_counts = defaultdict(int)
+    
+    for event in events:
+        try:
+            data = json.loads(event.Data)
+            operation = data.get("operation", "unknown")
+            process = data.get("instrumentProcess", "unknown")
+            
+            operation_counts[operation] += 1
+            process_counts[process] += 1
+            
+        except json.JSONDecodeError:
+            continue
+    
+    print(f"Analysis for instrument: {instrument_name}")
+    print(f"Total events: {len(events)}")
+    print("\nOperation breakdown:")
+    for operation, count in sorted(operation_counts.items()):
+        print(f"  {operation}: {count}")
+    
+    print("\nProcess breakdown:")
+    for process, count in sorted(process_counts.items()):
+        print(f"  {process}: {count}")
+
+# Usage
+analyze_instrument_operations(retriever, "Hamilton STAR")
+```
+
+### Example 5: Real-time Event Monitoring
+
+```python
+import time
+from datetime import datetime
+
+def monitor_instrument_events(retriever, instrument_name, poll_interval=30):
+    """Monitor events for a specific instrument in real-time."""
+    last_check = datetime.now()
+    
+    while True:
+        try:
+            # Get recent events
+            events = retriever.get_instrument_events(
+                instrument_name=instrument_name,
+                limit=100
+            )
+            
+            # Filter events newer than last check
+            new_events = [
+                event for event in events 
+                if event.Timestamp > last_check
+            ]
+            
+            if new_events:
+                print(f"[{datetime.now()}] Found {len(new_events)} new events")
+                for event in new_events:
+                    data = json.loads(event.Data)
+                    operation = data.get("operation", "unknown")
+                    print(f"  - {event.Timestamp}: {operation}")
+            
+            last_check = datetime.now()
+            time.sleep(poll_interval)
+            
+        except KeyboardInterrupt:
+            print("Monitoring stopped")
+            break
+        except Exception as e:
+            print(f"Error during monitoring: {e}")
+            time.sleep(poll_interval)
+
+# Usage (run in separate thread or process)
+# monitor_instrument_events(retriever, "Tecan EVO", poll_interval=10)
+```
+
+## 🎯 Best Practices
+
+### 1. **Use Appropriate Pagination**
+```python
+# ✅ Good - Use reasonable page sizes
+events = retriever.get_instrument_events(limit=1000, offset=0)
+
+# ❌ Avoid - Very large limits can cause timeouts
+events = retriever.get_instrument_events(limit=100000)
+```
+
+### 2. **Handle JSON Parsing Errors**
+```python
+# ✅ Good - Always handle JSON parsing
+try:
+    data = json.loads(event.Data)
+    operation = data.get("operation")
+except json.JSONDecodeError:
+    # Skip malformed events or use default values
+    operation = "unknown"
+```
+
+### 3. **Use Specific Filters**
+```python
+# ✅ Good - Use specific filters to reduce data transfer
+events = retriever.get_instrument_events(
+    instrument_name="Hamilton STAR",
+    operation="aspirate",
+    limit=500
+)
+
+# ❌ Less efficient - Retrieving all events and filtering manually
+all_events = retriever.get_instrument_events(limit=10000)
+filtered = [e for e in all_events if "aspirate" in e.Data]
+```
+
+### 4. **Implement Proper Logging**
+```python
+# ✅ Good - Log important operations
+import logging
+
+logger = logging.getLogger(__name__)
+
+events = retriever.get_instrument_events(instrument_name="Hamilton STAR")
+logger.info(f"Retrieved {len(events)} events for Hamilton STAR")
+```
+
+### 5. **Cache Retriever Instances**
+```python
+# ✅ Good - Reuse retriever instances
+class EventAnalyzer:
+    def __init__(self, data_services_url, association_id, module_id):
+        self.retriever = InstrumentEventRetriever(
+            data_services_url, association_id, module_id
+        )
+    
+    def analyze_instrument(self, instrument_name):
+        return self.retriever.get_instrument_events(
+            instrument_name=instrument_name
+        )
+```
+
+### 6. **Validate Parameters**
+```python
+# ✅ Good - Validate inputs
+def get_events_safe(retriever, instrument_name=None, **kwargs):
+    if instrument_name and not isinstance(instrument_name, str):
+        raise ValueError("instrument_name must be a string")
+    
+    return retriever.get_instrument_events(
+        instrument_name=instrument_name, 
+        **kwargs
+    )
+```
+
+### 7. **Use Context Managers for Resources**
+```python
+# ✅ Good - Proper resource management
+class ManagedEventRetriever:
+    def __init__(self, data_services_url, association_id, module_id):
+        self.data_services_url = data_services_url
+        self.association_id = association_id
+        self.module_id = module_id
+        self.retriever = None
+    
+    def __enter__(self):
+        self.retriever = InstrumentEventRetriever(
+            self.data_services_url, 
+            self.association_id, 
+            self.module_id
+        )
+        return self.retriever
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.retriever and hasattr(self.retriever.query_client, 'close'):
+            self.retriever.query_client.close()
+```
+
+---
+
+*This client provides specialized functionality for instrument event retrieval and analysis, enabling efficient monitoring and analysis of laboratory instrument operations.*
+
+</Protected>
