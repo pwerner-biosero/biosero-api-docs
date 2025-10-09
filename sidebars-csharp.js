@@ -31,6 +31,11 @@ const sidebars = {
       items: [
         {
           type: 'doc',
+          id: 'CSharp Data Services Client',
+          label: '🌐 Data Services Client',
+        },
+        {
+          type: 'doc',
           id: 'CSharp Query Client',
           label: '🔍 Query Client',
         },
