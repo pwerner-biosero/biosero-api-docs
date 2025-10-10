@@ -21,7 +21,10 @@ The `DataServicesClient` class is the main HTTP client for interacting with the 
 - [📦 Event Management Methods](#-event-management-methods)
 - [📁 File Management Methods](#-file-management-methods)
 - [🧬 Identity Management Methods](#-identity-management-methods)
-- [📊 Laboratory Data Methods](#-laboratory-data-methods)
+- [� Individual Identity Operations](#-individual-identity-operations)
+- [⚖️ Weight and Volume Management](#️-weight-and-volume-management)
+- [�📊 Laboratory Data Methods](#-laboratory-data-methods)
+- [🔄 Additional API Methods](#-additional-api-methods)
 - [⚠️ Error Handling](#️-error-handling)
 - [📖 Examples](#-examples)
 - [🎯 Best Practices](#-best-practices)
@@ -452,7 +455,178 @@ var specificIdentities = await client.GetIdentitiesAsync(
 );
 ```
 
-## 📊 Laboratory Data Methods
+## � Individual Identity Operations
+
+The DataServicesClient provides comprehensive methods for managing individual identities, including retrieval, location tracking, and removal operations.
+
+### GetIdentity()
+
+Retrieves a specific identity by its identifier.
+
+```csharp
+Identity GetIdentity(string identifier)
+Task<Identity> GetIdentityAsync(string identifier, CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+- `identifier` (string): The unique identifier of the identity
+
+**Returns:**
+- `Identity`: The identity object with full details
+
+### RemoveIdentity()
+
+Removes an identity from the system.
+
+```csharp
+void RemoveIdentity(string identifier)
+Task RemoveIdentityAsync(string identifier, CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+- `identifier` (string): The unique identifier of the identity to remove
+
+### GetIdentityLocation()
+
+Retrieves the current location information for a specific identity.
+
+```csharp
+Location GetIdentityLocation(string identifier)
+Task<Location> GetIdentityLocationAsync(string identifier, CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+- `identifier` (string): The unique identifier of the identity
+
+**Returns:**
+- `Location`: The current location of the identity
+
+### GetIdentityLocationPath()
+
+Retrieves the location path for a specific identity.
+
+```csharp
+void GetIdentityLocationPath(string identifier)
+Task GetIdentityLocationPathAsync(string identifier, CancellationToken cancellationToken = default)
+```
+
+**Example:**
+```csharp
+// Get detailed identity information
+var identity = await client.GetIdentityAsync("PLATE-001");
+Console.WriteLine($"Identity: {identity.Name}, Type: {identity.TypeIdentifier}");
+
+// Get current location
+var location = await client.GetIdentityLocationAsync("PLATE-001");
+Console.WriteLine($"Current Location: {location.Name}");
+
+// Remove identity when no longer needed
+await client.RemoveIdentityAsync("PLATE-001");
+Console.WriteLine("Identity removed successfully");
+```
+
+## ⚖️ Weight and Volume Management
+
+The DataServicesClient includes specialized methods for tracking weight and volume measurements of containers and laboratory items.
+
+### GetContainerNetWeightFromTransfers()
+
+Calculates the net weight of a container based on transfer operations.
+
+```csharp
+Weight GetContainerNetWeightFromTransfers(string containerId)
+Task<Weight> GetContainerNetWeightFromTransfersAsync(string containerId, CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+- `containerId` (string): The unique identifier of the container
+
+**Returns:**
+- `Weight`: The calculated net weight of the container
+
+### GetWeightEvents()
+
+Retrieves weight measurement events for a specific container.
+
+```csharp
+ICollection<WeightEvent> GetWeightEvents(
+    string containerId,
+    WeightMeasurementType? measurementType = null,
+    DateTimeOffset? start = null,
+    DateTimeOffset? end = null,
+    int? limit = null,
+    int? offset = null)
+
+Task<ICollection<WeightEvent>> GetWeightEventsAsync(
+    string containerId,
+    WeightMeasurementType? measurementType = null,
+    DateTimeOffset? start = null,
+    DateTimeOffset? end = null,
+    int? limit = null,
+    int? offset = null,
+    CancellationToken cancellationToken = default)
+```
+
+**Parameters:**
+- `containerId` (string): The container identifier
+- `measurementType` (WeightMeasurementType?): Optional filter by measurement type
+- `start` (DateTimeOffset?): Start date for filtering events
+- `end` (DateTimeOffset?): End date for filtering events
+- `limit` (int?): Maximum number of events to return
+- `offset` (int?): Pagination offset
+
+**Returns:**
+- `ICollection&lt;WeightEvent&gt;`: Collection of weight measurement events
+
+**Example:**
+```csharp
+// Get container net weight from transfers
+var weight = await client.GetContainerNetWeightFromTransfersAsync("CONTAINER-123");
+Console.WriteLine($"Net Weight: {weight.Value} {weight.Unit}");
+
+// Get recent weight events
+var weightEvents = await client.GetWeightEventsAsync(
+    "CONTAINER-123",
+    measurementType: WeightMeasurementType.Net,
+    start: DateTimeOffset.Now.AddDays(-7),
+    limit: 50
+);
+
+foreach (var weightEvent in weightEvents)
+{
+    Console.WriteLine($"Weight Event: {weightEvent.Weight.Value} {weightEvent.Weight.Unit} at {weightEvent.Timestamp}");
+}
+```
+
+## 🔄 Additional API Methods
+
+**Note:** The DataServicesClient is a comprehensive API with over 200+ methods covering various aspects of laboratory data management. The sections above cover the most commonly used functionality. The complete API includes additional specialized methods for:
+
+### Additional Functional Areas:
+- **Order Management**: Creating, updating, and tracking laboratory orders
+- **Sample Management**: Detailed sample tracking and lifecycle management  
+- **Workflow Operations**: Laboratory workflow automation and monitoring
+- **Equipment Integration**: Instrument and device communication interfaces
+- **Data Analytics**: Advanced reporting and analysis capabilities
+- **Audit and Compliance**: Comprehensive logging and traceability features
+- **Location Services**: Advanced positioning and tracking systems
+- **Protocol Management**: Laboratory protocol execution and monitoring
+- **Quality Control**: QC sample processing and validation
+- **Inventory Management**: Laboratory inventory tracking and management
+
+### Method Categories Not Fully Documented:
+- Transfer operations and liquid handling
+- Barcode and RFID management  
+- Temperature and environmental monitoring
+- Calibration and maintenance tracking
+- User and permission management
+- Integration with external systems
+- Real-time monitoring and alerting
+- Batch processing operations
+
+**For complete API reference**: The auto-generated client contains the full method signatures with XML documentation. Refer to IntelliSense in your IDE or the generated client source code for detailed information about all available methods.
+
+## �📊 Laboratory Data Methods
 
 ### GetContainerNetVolume()
 
