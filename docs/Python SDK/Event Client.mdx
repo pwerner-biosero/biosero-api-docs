@@ -48,29 +48,29 @@ Publishes an event message synchronously to the Event Service.
 
 **Example:**
 ```python
-from biosero.datamodels.events import EventMessage
-from datetime import datetime
+from biosero.datamodels.events import EventContext, EventMessage, Event
+from biosero.datamodels.restclients import EventClient
+import json
 
-# Create event message
+ec = EventClient('http://10.0.0.234:8105')
+
 event = EventMessage(
-    topic="sample.processed",
-    subjects=["sample-123"],
-    data={
+    Topic="Biosero.DataModels.Events.MyCustomEvent",
+    Subjects=["sample-123", "batch-456"],
+    Data=json.dumps({
+        "workflow": "DNA_Extraction",
         "operator": "lab_tech_1",
-        "processing_time": "00:45:30",
-        "status": "completed"
-    },
-    tags=["laboratory", "processing"],
-    created_date_utc=datetime.utcnow()
+        "equipment": "robot-arm-2",
+        "estimated_completion": "2023-10-15T14:30:00Z"
+    }),
+    Tags=["processing", "dna", "automated"]
 )
-
-# Publish event
-client = EventClient(url="https://api.example.com")
-result = client.publish_event(event)
-print(f"Event published: {result}")
+ec.publish_event(event)
 ```
 
 **API Endpoint:** `POST /api/v2.0/EventService`
+
+**Important:** The `Data` field in EventMessage must be a JSON string, not a Python object. Always use `json.dumps()` to serialize your data.
 
 **Data Processing:**
 - Automatically converts EventMessage objects to dictionary format
@@ -92,20 +92,23 @@ Publishes an event message asynchronously using an httpx.AsyncClient.
 ```python
 import asyncio
 import httpx
-from biosero.datamodels.events import EventMessage
+import json
+from biosero.datamodels.events import EventContext, EventMessage, Event
+from biosero.datamodels.restclients import EventClient
 
 async def publish_event_async():
     event = EventMessage(
-        topic="equipment.maintenance",
-        subjects=["robot-arm-1"],
-        data={
+        Topic="Biosero.DataModels.Events.EquipmentMaintenance",
+        Subjects=["robot-arm-1"],
+        Data=json.dumps({
             "maintenance_type": "scheduled",
             "duration": "02:00:00",
             "technician": "tech_007"
-        }
+        }),
+        Tags=["equipment", "maintenance", "scheduled"]
     )
     
-    event_client = EventClient(url="https://api.example.com")
+    event_client = EventClient('http://10.0.0.234:8105')
     
     async with httpx.AsyncClient() as async_client:
         result = await event_client.publish_async(event, async_client)
