@@ -16,7 +16,7 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
+        {/* <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
             to="/python-sdk/intro">
@@ -27,7 +27,7 @@ function HomepageHeader() {
             to="/csharp-sdk/intro">
             C# SDK
           </Link>
-        </div>
+        </div> */}
       </div>
     </header>
   );

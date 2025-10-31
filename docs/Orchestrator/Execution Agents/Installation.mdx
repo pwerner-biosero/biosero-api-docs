@@ -1,0 +1,402 @@
+---
+id: "Installation"
+title: "📦 Installation & Setup"
+sidebar_label: "Installation"
+description: "Complete guide to installing and setting up Execution Agents"
+---
+
+# 📦 Installation & Setup
+
+This guide covers the complete installation and setup process for **Biosero Execution Agents** - Python-based adapters that enable seamless integration between your custom code and Biosero's data services.
+
+## 🎯 Overview
+
+**Execution Agents** are Python clients that interact with Biosero Data Services to:
+- Execute custom Python code within integrated laboratory systems
+- Interface with LIMS, ELNS, and third-party schedulers  
+- Provide seamless integration between your automation code and core Biosero functionalities
+- Process workflow orders and manage laboratory data
+
+---
+
+## 🏗️ Development Environment Setup
+
+### 📋 **Prerequisites**
+
+Ensure your development machine has access to:
+- **Biosero Data Services** endpoint
+- **LIMS and ELNS** systems (if applicable)
+- **Data storage endpoints**
+- **Third-party control software** (if required)
+
+### 🐳 **Option A: VSCode Dev Container (Recommended)**
+
+#### **Step 1: Install Docker Desktop**
+
+```bash
+# Windows: Download from Docker Desktop website
+# macOS: Download Docker Desktop for Mac
+# Linux: Install Docker Engine
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+```
+
+**Windows Configuration:**
+1. Download from [Docker Desktop](https://www.docker.com/products/docker-desktop)
+2. Enable **WSL2 Integration** in Docker Desktop settings
+3. Complete WSL2 Linux kernel update if prompted
+4. Verify Docker is running (taskbar icon)
+
+#### **Step 2: Setup Visual Studio Code**
+
+```bash
+# Install VS Code Dev Containers extension
+code --install-extension ms-vscode-remote.remote-containers
+```
+
+**Manual Installation:**
+1. Install [VS Code](https://code.visualstudio.com/)
+2. Open Extensions view (`Ctrl+Shift+X`)
+3. Search and install **"Dev Containers"** extension
+
+#### **Step 3: Optional Git Setup**
+
+```bash
+# Windows
+# Download from: https://git-scm.com/download/win
+
+# macOS
+brew install git
+
+# Linux
+sudo apt-get install git
+```
+
+#### **Step 4: Configure the Project**
+
+```bash
+# Extract the adapter files
+unzip conductor-python-adapter.zip
+cd conductor-python-adapter
+
+# Update configuration
+nano config.ini
+```
+
+**Update `config.ini`:**
+```ini
+[DATA SERVICES]
+url=http://host.docker.internal:8105
+# For production, use your actual Data Services URL
+# url=https://your-orchestrator.biosero.com/api
+```
+
+#### **Step 5: Launch Dev Container**
+
+```bash
+# Open project in VS Code
+code .
+
+# In VS Code:
+# 1. Press Ctrl+Shift+P
+# 2. Search: "Reopen in Container"
+# 3. Allow VS Code to rebuild container
+```
+
+#### **Step 6: Install Biosero Extension**
+
+1. Navigate to `extensions/` directory in File Explorer
+2. Right-click `data-services-explorer-0.0.1.vsix`
+3. Select **"Install Extension VSIX"**
+
+---
+
+## 🚀 **Option B: Local Python Installation**
+
+### **Step 1: Install Python**
+
+```bash
+# Check Python version (3.9+ required)
+python --version
+
+# Install Python if needed
+# Windows: Download from python.org
+# macOS: brew install python
+# Linux: sudo apt-get install python3 python3-pip
+```
+
+### **Step 2: Create Virtual Environment**
+
+```bash
+# Create virtual environment
+python -m venv execution-agent-env
+
+# Activate environment
+# Windows:
+execution-agent-env\Scripts\activate
+# macOS/Linux:
+source execution-agent-env/bin/activate
+```
+
+### **Step 3: Install Dependencies**
+
+```bash
+# Install execution agent package
+pip install biosero-execution-agent
+
+# Or install from requirements
+pip install -r requirements.txt
+```
+
+### **Step 4: Configure Agent**
+
+```bash
+# Copy example configuration
+cp config/agent.example.yaml config/agent.yaml
+
+# Edit configuration
+nano config/agent.yaml
+```
+
+```yaml
+# config/agent.yaml
+agent:
+  name: "my-execution-agent"
+  polling_interval: 5
+
+data_services:
+  base_url: "https://your-orchestrator.biosero.com/api"
+  api_key: "${DATA_SERVICES_API_KEY}"
+  
+logging:
+  level: "INFO"
+  file_path: "/var/log/execution-agent.log"
+```
+
+---
+
+## 🐳 Production Deployment
+
+### **Option 1: Docker Compose (Recommended)**
+
+Create `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  execution-agent:
+    image: biosero/execution-agent:latest
+    container_name: execution-agent
+    restart: always
+    environment:
+      - DATA_SERVICES_URL=https://your-orchestrator.biosero.com/api
+      - DATA_SERVICES_API_KEY=${DATA_SERVICES_API_KEY}
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/var/log
+      - ./actions:/app/actions:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - NET_RAW
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+```
+
+**Deploy:**
+```bash
+# Start the service
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f execution-agent
+
+# Check status
+docker-compose ps
+```
+
+### **Option 2: Kubernetes Deployment**
+
+Create `deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: execution-agent
+  labels:
+    app: execution-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: execution-agent
+  template:
+    metadata:
+      labels:
+        app: execution-agent
+    spec:
+      containers:
+      - name: execution-agent
+        image: biosero/execution-agent:latest
+        env:
+        - name: DATA_SERVICES_URL
+          value: "https://your-orchestrator.biosero.com/api"
+        - name: DATA_SERVICES_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: execution-agent-secrets
+              key: api-key
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        securityContext:
+          capabilities:
+            drop: ["NET_RAW"]
+          runAsNonRoot: true
+          runAsUser: 1000
+```
+
+**Deploy:**
+```bash
+# Create secret for API key
+kubectl create secret generic execution-agent-secrets \
+  --from-literal=api-key=your-api-key-here
+
+# Apply deployment
+kubectl apply -f deployment.yaml
+
+# Check status
+kubectl get pods -l app=execution-agent
+```
+
+### **Option 3: AWS Deployment**
+
+#### **AWS ECS with Fargate:**
+
+```bash
+# Create ECR repository
+aws ecr create-repository --repository-name execution-agent
+
+# Build and push image
+docker build -t execution-agent .
+docker tag execution-agent:latest $AWS_ACCOUNT.dkr.ecr.$REGION.amazonaws.com/execution-agent:latest
+docker push $AWS_ACCOUNT.dkr.ecr.$REGION.amazonaws.com/execution-agent:latest
+
+# Create ECS task definition and service
+aws ecs create-service --cluster my-cluster --service-name execution-agent \
+  --task-definition execution-agent:1 --desired-count 2
+```
+
+#### **AWS EKS:**
+
+```bash
+# Create EKS cluster
+eksctl create cluster --name biosero-cluster --region us-west-2
+
+# Deploy to EKS
+kubectl apply -f deployment.yaml
+```
+
+---
+
+## ✅ Verification & Testing
+
+### **Health Checks**
+
+```bash
+# Check agent health
+curl http://localhost:8080/health
+
+# Expected response:
+{
+  "status": "healthy",
+  "uptime": "1h 23m 45s",
+  "data_services_connection": "connected",
+  "last_poll": "2024-10-20T14:30:00Z"
+}
+```
+
+### **Test Agent Functionality**
+
+```bash
+# Check logs for successful startup
+docker logs execution-agent
+
+# Look for:
+# ✅ Agent 'my-execution-agent' started successfully
+# 🔄 Polling for orders every 5 seconds
+# 📡 Connected to Data Services at https://...
+```
+
+### **Monitor Performance**
+
+```bash
+# View metrics
+curl http://localhost:8080/metrics
+
+# Check processing stats
+curl http://localhost:8080/stats
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### **Common Issues**
+
+#### **Connection Errors**
+```bash
+# Test Data Services connectivity
+curl -H "Authorization: Bearer $API_KEY" \
+     https://your-orchestrator.biosero.com/api/health
+```
+
+#### **Permission Issues**
+```bash
+# Check Docker permissions
+docker run hello-world
+
+# Fix Docker permissions (Linux)
+sudo usermod -aG docker $USER
+```
+
+#### **Configuration Problems**
+```bash
+# Validate configuration
+python -c "import yaml; print(yaml.safe_load(open('config/agent.yaml')))"
+```
+
+### **Log Analysis**
+
+```bash
+# View detailed logs
+tail -f /var/log/execution-agent.log
+
+# Search for specific errors
+grep -i error /var/log/execution-agent.log
+```
+
+---
+
+## 🎯 Next Steps
+
+After successful installation:
+
+1. **[📚 Configure Your First Action](./custom-actions.md)**
+2. **[🔧 Advanced Configuration](./configuration.md)**
+3. **[📊 Monitoring & Observability](./monitoring.md)**
+4. **[🔒 Security Best Practices](./security.md)**
+
+---
+
+*Your Execution Agent is now ready to revolutionize your laboratory automation! 🚀⚗️*

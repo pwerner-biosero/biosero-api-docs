@@ -75,6 +75,61 @@ const config = {
           'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
       },
     ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'data-services',
+        path: 'docs/Orchestrator/Data Services',
+        routeBasePath: 'orchestrator/data-services',
+        sidebarPath: './sidebars-data-services.js',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'conductor',
+        path: 'docs/Orchestrator/Conductor',
+        routeBasePath: 'orchestrator/conductor',
+        sidebarPath: './sidebars-conductor.js',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'designer',
+        path: 'docs/Orchestrator/Designer',
+        routeBasePath: 'orchestrator/designer',
+        sidebarPath: './sidebars-designer.js',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'scheduler',
+        path: 'docs/Orchestrator/Scheduler',
+        routeBasePath: 'orchestrator/scheduler',
+        sidebarPath: './sidebars-scheduler.js',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'execution-agents',
+        path: 'docs/Orchestrator/Execution Agents',
+        routeBasePath: 'orchestrator/execution-agents',
+        sidebarPath: './sidebars-execution-agents.js',
+        editUrl:
+          'https://github.com/pwerner-biosero/biosero-api-docs/edit/master/',
+      },
+    ],
   ],
 
   themeConfig:
@@ -108,6 +163,43 @@ const config = {
                 sidebarId: 'pythonSidebar',
                 docsPluginId: 'python-sdk',
                 label: 'Python',
+              },
+            ],
+          },
+          {
+            type: 'dropdown',
+            label: 'Orchestrator',
+            position: 'left',
+            items: [
+              {
+                type: 'docSidebar',
+                sidebarId: 'dataServicesSidebar',
+                docsPluginId: 'data-services',
+                label: 'Data Services',
+              },
+              {
+                type: 'docSidebar',
+                sidebarId: 'conductorSidebar',
+                docsPluginId: 'conductor',
+                label: 'Conductor',
+              },
+              {
+                type: 'docSidebar',
+                sidebarId: 'designerSidebar',
+                docsPluginId: 'designer',
+                label: 'Designer',
+              },
+              {
+                type: 'docSidebar',
+                sidebarId: 'schedulerSidebar',
+                docsPluginId: 'scheduler',
+                label: 'Scheduler',
+              },
+              {
+                type: 'docSidebar',
+                sidebarId: 'executionAgentsSidebar',
+                docsPluginId: 'execution-agents',
+                label: 'Execution Agents',
               },
             ],
           },
